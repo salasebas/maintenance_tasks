@@ -17,7 +17,7 @@ module MaintenanceTasks
     #   querying the Runs dataset to produce a page of Runs. If nil, the first
     #   Runs in the relation are used.
     def initialize(runs, cursor)
-      @runs = runs
+      @runs = runs.reorder(created_at: :desc, id: :desc)
       @cursor = cursor
     end
 
@@ -34,7 +34,8 @@ module MaintenanceTasks
     def records
       @records ||= begin
         runs_after_cursor = if @cursor.present?
-          @runs.where("id < ?", @cursor)
+          cursor_run = @runs.find_by(id: @cursor)
+          cursor_run ? @runs.where(cursor_condition(cursor_run)) : @runs.none
         else
           @runs
         end
@@ -47,7 +48,7 @@ module MaintenanceTasks
     # Returns the cursor to use for the next Page of Runs. It is the id of the
     # last record on the current Page.
     #
-    # @return [Integer] the id of the last record for the Page.
+    # @return [String, Integer] the id of the last record for the Page.
     def next_cursor
       records.last.id
     end
@@ -60,6 +61,15 @@ module MaintenanceTasks
     def last?
       records
       @extra_run.nil?
+    end
+
+    private
+
+    def cursor_condition(cursor_run)
+      run = @runs.klass.arel_table
+      run[:created_at].lt(cursor_run.created_at).or(
+        run[:created_at].eq(cursor_run.created_at).and(run[:id].lt(cursor_run.id)),
+      )
     end
   end
 end
