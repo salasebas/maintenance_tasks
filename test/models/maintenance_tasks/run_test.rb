@@ -464,6 +464,18 @@ module MaintenanceTasks
       assert_predicate run, :pausing?
     end
 
+    test "with optimistic locking enabled, #running reloads a stale running Run" do
+      run = Run.create!(
+        task_name: "Maintenance::UpdatePostsTask",
+        status: :running,
+      )
+      Run.find(run.id).cancelling!
+
+      run.running
+
+      assert_predicate run, :cancelling?
+    end
+
     test "with optimistic locking disabled, #running doesn't set a non-runnable run to running and reloads the status" do
       Run.expects(:locking_enabled?).returns(false).at_least_once
       non_runnable_statuses = Run::STATUSES - [:enqueued, :running, :interrupted]

@@ -70,6 +70,29 @@ module MaintenanceTasks
       perform_enqueued_jobs
     end
 
+    test ".perform_now stops when a Run is cancelled while downloading CSV without optimistic locking" do
+      Run.stubs(:locking_enabled?).returns(false)
+      run = Run.new(task_name: "Maintenance::ImportPostsTask")
+      run.csv_file.attach(
+        io: file_fixture("sample.csv").open,
+        filename: "sample.csv",
+      )
+      run.save!
+      csv_content = file_fixture("sample.csv").binread
+      download_key = run.csv_file.blob.key
+      ActiveStorage::Blob.service.expects(:download).with do |key|
+        Run.find(run.id).cancelling!
+        key == download_key
+      end.returns(csv_content)
+      Maintenance::ImportPostsTask.any_instance.expects(:collection).never
+      Maintenance::ImportPostsTask.any_instance.expects(:process).never
+
+      TaskJob.perform_now(run)
+
+      assert_predicate(run.reload, :cancelled?)
+      assert_nil(run.started_at)
+    end
+
     test ".perform_now persists ended_at when the Run is cancelled" do
       freeze_time
       Maintenance::TestTask.any_instance.expects(:process).once.with do
@@ -118,6 +141,23 @@ module MaintenanceTasks
       assert_predicate(@run.reload, :cancelled?)
       assert_nil(@run.started_at)
       assert_no_enqueued_jobs
+    ensure
+      CustomTaskJob.race_condition_hook = nil
+    end
+
+    test ".perform_now avoids setup when a running Run is concurrently cancelled" do
+      run = Run.create!(task_name: "Maintenance::TestTask", status: :running)
+      CustomTaskJob.race_condition_hook = -> do
+        Run.find(run.id).cancelling!
+      end
+
+      Maintenance::TestTask.any_instance.expects(:collection).never
+      Maintenance::TestTask.any_instance.expects(:process).never
+
+      CustomTaskJob.perform_now(run)
+
+      assert_predicate(run.reload, :cancelled?)
+      assert_nil(run.started_at)
     ensure
       CustomTaskJob.race_condition_hook = nil
     end

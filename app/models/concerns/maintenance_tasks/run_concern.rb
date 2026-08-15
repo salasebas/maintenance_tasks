@@ -258,6 +258,7 @@ module MaintenanceTasks
     def running
       if locking_enabled?
         with_stale_object_retry do
+          reload_status if running?
           running! if RUNNABLE_STATUSES.include?(status.to_sym)
         end
       else
