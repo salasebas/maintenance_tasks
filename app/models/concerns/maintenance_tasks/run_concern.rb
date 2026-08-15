@@ -29,6 +29,8 @@ module MaintenanceTasks
       :interrupted,
     ].freeze
 
+    RUNNABLE_STATUSES = [:enqueued, :running, :interrupted].freeze
+
     STOPPING_STATUSES = [
       :pausing,
       :cancelling,
@@ -250,20 +252,20 @@ module MaintenanceTasks
 
     # Marks a Run as running.
     #
-    # If the run is stopping already, it will not transition to running.
+    # If the Run is not runnable, it will not transition to running.
     # Rescues and retries status transition if an ActiveRecord::StaleObjectError
     # is encountered.
     def running
       if locking_enabled?
         with_stale_object_retry do
-          running! unless stopping?
+          running! if RUNNABLE_STATUSES.include?(status.to_sym)
         end
       else
         # Preserve swap-and-replace solution for data races until users
         # run migration to upgrade to optimistic locking solution
-        return if stopping?
+        return unless RUNNABLE_STATUSES.include?(status.to_sym)
 
-        updated = self.class.where(id: id).where.not(status: STOPPING_STATUSES)
+        updated = self.class.where(id: id, status: RUNNABLE_STATUSES)
           .update_all(status: :running, updated_at: Time.now) > 0
         if updated
           self.status = :running
