@@ -34,7 +34,6 @@ module MaintenanceTasks
     def records
       @records ||= begin
         runs_after_cursor = if @cursor.present?
-          cursor_run = @runs.find_by(id: @cursor)
           cursor_run ? @runs.where(cursor_condition(cursor_run)) : @runs.none
         else
           @runs
@@ -53,6 +52,30 @@ module MaintenanceTasks
       records.last.id
     end
 
+    # Returns the cursor to use for the previous Page. A nil cursor represents
+    # the first Page.
+    #
+    # @return [String, Integer, nil] the cursor for the previous Page.
+    def previous_cursor
+      return if first?
+      return unless cursor_run
+
+      preceding_run_ids = @runs
+        .where(previous_cursor_condition(cursor_run))
+        .reorder(created_at: :asc, id: :asc)
+        .limit(RUNS_PER_PAGE)
+        .pluck(:id)
+
+      preceding_run_ids.last if preceding_run_ids.length == RUNS_PER_PAGE
+    end
+
+    # Returns whether this Page is the first one.
+    #
+    # @return [Boolean] whether this is the first Page.
+    def first?
+      @cursor.blank?
+    end
+
     # Returns whether this Page is the last one.
     #
     # @return [Boolean] whether this Page contains the last Run record in the Runs
@@ -65,10 +88,21 @@ module MaintenanceTasks
 
     private
 
+    def cursor_run
+      @cursor_run ||= @runs.find_by(id: @cursor)
+    end
+
     def cursor_condition(cursor_run)
       run = @runs.klass.arel_table
       run[:created_at].lt(cursor_run.created_at).or(
         run[:created_at].eq(cursor_run.created_at).and(run[:id].lt(cursor_run.id)),
+      )
+    end
+
+    def previous_cursor_condition(cursor_run)
+      run = @runs.klass.arel_table
+      run[:created_at].gt(cursor_run.created_at).or(
+        run[:created_at].eq(cursor_run.created_at).and(run[:id].gt(cursor_run.id)),
       )
     end
   end
