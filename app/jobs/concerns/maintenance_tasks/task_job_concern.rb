@@ -30,6 +30,15 @@ module MaintenanceTasks
       end
     end
 
+    # Rails 7.2/8.0 retry a dup, so enqueue self for successfully_enqueued?.
+    def retry_job(options = {})
+      return if defined?(@retried) && @retried
+
+      result = enqueue(options)
+      @retried = true
+      result
+    end
+
     private
 
     def serialized_cursor_position
