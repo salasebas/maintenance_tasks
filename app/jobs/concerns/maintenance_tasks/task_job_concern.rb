@@ -140,13 +140,15 @@ module MaintenanceTasks
     def before_perform
       @run = arguments.first
       @run.running
-      abort_unless_run_is_running
 
-      @task = @run.task
-      if @task.has_csv_content?
-        @task.csv_content = @run.csv_file.download
+      if @run.running?
+        @task = @run.task
+        if @task.has_csv_content?
+          @task.csv_content = @run.csv_file.download
+        end
+        @run.reload_status
       end
-      @run.reload_status
+
       abort_unless_run_is_running
       @last_status_reload = Time.now
 

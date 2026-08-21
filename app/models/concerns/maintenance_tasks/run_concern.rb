@@ -235,6 +235,15 @@ module MaintenanceTasks
       ACTIVE_STATUSES.include?(status.to_sym)
     end
 
+    # Returns whether the Run is runnable, which is defined as
+    # having a status of enqueued, running, or interrupted. These
+    # are the statuses from which a job may claim the Run.
+    #
+    # @return [Boolean] whether the Run is runnable.
+    def runnable?
+      RUNNABLE_STATUSES.include?(status.to_sym)
+    end
+
     # Returns the duration left for the Run to finish based on the number of
     # ticks left and the average time needed to process a tick. Returns nil if
     # the Run is completed, or if tick_count or tick_total is zero.
@@ -259,12 +268,12 @@ module MaintenanceTasks
       if locking_enabled?
         with_stale_object_retry do
           reload_status if running?
-          running! if RUNNABLE_STATUSES.include?(status.to_sym)
+          running! if runnable?
         end
       else
         # Preserve swap-and-replace solution for data races until users
         # run migration to upgrade to optimistic locking solution
-        return unless RUNNABLE_STATUSES.include?(status.to_sym)
+        return unless runnable?
 
         updated = self.class.where(id: id, status: RUNNABLE_STATUSES)
           .update_all(status: :running, updated_at: Time.now) > 0
