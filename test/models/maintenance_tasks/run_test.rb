@@ -358,6 +358,20 @@ module MaintenanceTasks
       end
     end
 
+    test "#runnable? returns true if status is among Run::RUNNABLE_STATUSES" do
+      run = Run.new(task_name: "Maintenance::UpdatePostsTask")
+
+      (Run::STATUSES - Run::RUNNABLE_STATUSES).each do |status|
+        run.status = status
+        refute_predicate run, :runnable?
+      end
+
+      Run::RUNNABLE_STATUSES.each do |status|
+        run.status = status
+        assert_predicate run, :runnable?
+      end
+    end
+
     test "#time_to_completion returns nil if the run is completed" do
       run = Run.new(
         task_name: "Maintenance::UpdatePostsTask",
@@ -428,7 +442,7 @@ module MaintenanceTasks
     end
 
     test "with optimistic locking enabled, #running doesn't set a non-runnable run to running" do
-      non_runnable_statuses = Run::STATUSES - [:enqueued, :running, :interrupted]
+      non_runnable_statuses = Run::STATUSES - Run::RUNNABLE_STATUSES
       non_runnable_statuses.each do |status|
         run = Run.create!(
           task_name: "Maintenance::UpdatePostsTask",
@@ -478,7 +492,7 @@ module MaintenanceTasks
 
     test "with optimistic locking disabled, #running doesn't set a non-runnable run to running and reloads the status" do
       Run.expects(:locking_enabled?).returns(false).at_least_once
-      non_runnable_statuses = Run::STATUSES - [:enqueued, :running, :interrupted]
+      non_runnable_statuses = Run::STATUSES - Run::RUNNABLE_STATUSES
       non_runnable_statuses.each do |status|
         run = Run.create!(
           task_name: "Maintenance::UpdatePostsTask",
