@@ -34,7 +34,7 @@ module MaintenanceTasks
     def records
       @records ||= begin
         runs_after_cursor = if @cursor.present?
-          cursor_run ? @runs.where(cursor_condition(cursor_run)) : @runs.none
+          cursor_run ? records_after_cursor(cursor_run) : @runs.none
         else
           @runs
         end
@@ -60,8 +60,7 @@ module MaintenanceTasks
       return if first?
       return unless cursor_run
 
-      preceding_run_ids = @runs
-        .where(previous_cursor_condition(cursor_run))
+      preceding_run_ids = records_before_cursor(cursor_run)
         .reorder(created_at: :asc, id: :asc)
         .limit(RUNS_PER_PAGE)
         .pluck(:id)
@@ -92,17 +91,15 @@ module MaintenanceTasks
       @cursor_run ||= @runs.find_by(id: @cursor)
     end
 
-    def cursor_condition(cursor_run)
-      run = @runs.klass.arel_table
-      run[:created_at].lt(cursor_run.created_at).or(
-        run[:created_at].eq(cursor_run.created_at).and(run[:id].lt(cursor_run.id)),
+    def records_after_cursor(cursor_run)
+      @runs.where(created_at: ...cursor_run.created_at).or(
+        @runs.where(created_at: cursor_run.created_at, id: ...cursor_run.id),
       )
     end
 
-    def previous_cursor_condition(cursor_run)
-      run = @runs.klass.arel_table
-      run[:created_at].gt(cursor_run.created_at).or(
-        run[:created_at].eq(cursor_run.created_at).and(run[:id].gt(cursor_run.id)),
+    def records_before_cursor(cursor_run)
+      @runs.where.not(created_at: ..cursor_run.created_at).or(
+        @runs.where(created_at: cursor_run.created_at).where.not(id: ..cursor_run.id),
       )
     end
   end
