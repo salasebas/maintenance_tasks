@@ -7,12 +7,18 @@ module MaintenanceTasks
   #
   # @api private
   class TasksController < ApplicationController
-    before_action :set_refresh, only: [:index]
+    before_action :set_refresh, only: [:index, :show]
 
     # Renders the maintenance_tasks/tasks page, displaying
     # available tasks to users, grouped by category.
     def index
       @available_tasks = TaskDataIndex.available_tasks.group_by(&:category)
+      @selected_category = params[:tab].presence_in(["new", "active", "completed"]) || "new"
+      @tasks_page = TasksPage.new(
+        @available_tasks.fetch(@selected_category.to_sym, []),
+        cursor: params[:cursor],
+        per_page: params[:per_page],
+      )
     end
 
     # Renders the page responsible for providing Task actions to users.
@@ -21,14 +27,15 @@ module MaintenanceTasks
       @task = TaskDataShow.prepare(
         params.fetch(:id),
         runs_cursor: params[:cursor],
-        arguments: params.except(:id, :controller, :action).permit!,
+        runs_per_page: params[:per_page],
+        arguments: params.except(:id, :controller, :action, :refresh, :cursor, :per_page).permit!,
       )
     end
 
     private
 
     def set_refresh
-      @refresh = true
+      @auto_refresh_enabled = params[:refresh] != "false"
     end
   end
 end

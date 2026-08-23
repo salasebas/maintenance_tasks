@@ -33,16 +33,64 @@ module MaintenanceTasks
 
     test ".perform doesn't run a cancelled job" do
       freeze_time
-      TaskJob.perform_later(@run)
-      @run.cancel
+      run = Run.create!(task_name: "Maintenance::CallbackTestTask")
+      TaskJob.perform_later(run)
+      Maintenance::CallbackTestTask.any_instance
+        .expects(:after_cancel_callback).once
+      run.cancel
       travel MaintenanceTasks.stuck_task_duration
-      @run.cancel # force cancel the Run
-      assert_predicate @run, :cancelled?
-      Maintenance::TestTask.any_instance.expects(:process).never
+      run.cancel # force cancel the Run
+      assert_predicate run, :cancelled?
+      Maintenance::CallbackTestTask.any_instance.expects(:collection).never
+      Maintenance::CallbackTestTask.any_instance.expects(:process).never
+      Maintenance::CallbackTestTask.any_instance
+        .expects(:after_start_callback).never
 
       assert_nothing_raised do
         perform_enqueued_jobs
       end
+
+      assert_nil run.reload.started_at
+    end
+
+    test ".perform doesn't download CSV for a cancelled job" do
+      freeze_time
+      run = Run.new(task_name: "Maintenance::ImportPostsTask")
+      run.csv_file.attach(
+        io: file_fixture("sample.csv").open,
+        filename: "sample.csv",
+      )
+      run.save!
+      TaskJob.perform_later(run)
+      run.cancel
+      travel MaintenanceTasks.stuck_task_duration
+      run.cancel
+      ActiveStorage::Blob.service.expects(:download).never
+
+      perform_enqueued_jobs
+    end
+
+    test ".perform_now stops when a Run is cancelled while downloading CSV without optimistic locking" do
+      Run.stubs(:locking_enabled?).returns(false)
+      run = Run.new(task_name: "Maintenance::ImportPostsTask")
+      run.csv_file.attach(
+        io: file_fixture("sample.csv").open,
+        filename: "sample.csv",
+      )
+      run.save!
+      csv_content = file_fixture("sample.csv").binread
+      download_key = run.csv_file.blob.key
+      ActiveStorage::Blob.service.expects(:download).with do |key|
+        Run.find(run.id).cancelling!
+        key == download_key
+      end.returns(csv_content)
+      Maintenance::ImportPostsTask.any_instance.expects(:collection).never
+      Maintenance::ImportPostsTask.any_instance.expects(:process).never
+
+      TaskJob.perform_now(run)
+
+      assert_predicate(run.reload, :cancelled?)
+      assert_nil(run.started_at)
     end
 
     test ".perform_now persists ended_at when the Run is cancelled" do
@@ -70,11 +118,13 @@ module MaintenanceTasks
     test ".perform_now avoids iterating when Run is cancelled" do
       @run.cancelling!
 
+      Maintenance::TestTask.any_instance.expects(:collection).never
       Maintenance::TestTask.any_instance.expects(:process).never
 
       TaskJob.perform_now(@run)
 
       assert_predicate @run.reload, :cancelled?
+      assert_nil @run.started_at
       assert_no_enqueued_jobs
     end
 
@@ -83,12 +133,31 @@ module MaintenanceTasks
         Run.find(@run.id).update(status: :cancelling)
       end
 
+      Maintenance::TestTask.any_instance.expects(:collection).never
       Maintenance::TestTask.any_instance.expects(:process).never
 
       CustomTaskJob.perform_now(@run)
 
       assert_predicate(@run.reload, :cancelled?)
+      assert_nil(@run.started_at)
       assert_no_enqueued_jobs
+    ensure
+      CustomTaskJob.race_condition_hook = nil
+    end
+
+    test ".perform_now avoids setup when a running Run is concurrently cancelled" do
+      run = Run.create!(task_name: "Maintenance::TestTask", status: :running)
+      CustomTaskJob.race_condition_hook = -> do
+        Run.find(run.id).cancelling!
+      end
+
+      Maintenance::TestTask.any_instance.expects(:collection).never
+      Maintenance::TestTask.any_instance.expects(:process).never
+
+      CustomTaskJob.perform_now(run)
+
+      assert_predicate(run.reload, :cancelled?)
+      assert_nil(run.started_at)
     ensure
       CustomTaskJob.race_condition_hook = nil
     end
@@ -171,6 +240,24 @@ module MaintenanceTasks
       Maintenance::TestTask.any_instance.expects(:process).once
 
       assert_enqueued_with(job: TaskJob) { TaskJob.perform_now(@run) }
+    end
+
+    test ".perform_now errors the Run when re-enqueuing is unsuccessful" do
+      JobIteration.stubs(interruption_adapter: -> { true })
+      Maintenance::TestTask.any_instance.expects(:process).once
+      job_class = Class.new(TaskJob) do
+        before_enqueue { throw :abort }
+      end
+
+      assert_no_enqueued_jobs { job_class.perform_now(@run) }
+
+      assert_predicate @run.reload, :errored?
+      assert_equal "ActiveJob::EnqueueError", @run.error_class
+      assert_equal(
+        "The job to perform Maintenance::TestTask could not be re-enqueued. " \
+          "Enqueuing has been prevented by a callback.",
+        @run.error_message,
+      )
     end
 
     test ".perform_now updates Run to errored and persists ended_at when exception is raised" do

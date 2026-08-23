@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="<%= I18n.locale %>">
+<html lang="<%= I18n.locale %>" data-appearance="classic" data-theme-preference="system">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -32,10 +32,65 @@
         --ruby-keyword: #d73a49;
         --ruby-string: #032f62;
         --required-color: #ff6685;
+        --mt-surface: var(--bulma-scheme-main);
+        --mt-surface-hover: var(--bulma-background);
+        --mt-control: #eeeeef;
+        --mt-control-hover: #e2e2e6;
+        --mt-control-selected: #ffffff;
+        --mt-border: rgb(24 24 27 / 10%);
+        --mt-text: #18181b;
+        --mt-muted: #71717a;
+        --mt-focus: #485fc7;
+        --mt-control-shadow: 0 1px 2px rgb(24 24 27 / 12%);
+        --mt-card-shadow: 0 0 6px 0 #0000001a, 0 2px 4px -1px #0000001a;
+        --mt-popover: #ffffff;
+        --mt-popover-shadow: 0 12px 32px rgb(0 0 0 / 16%), 0 2px 8px rgb(0 0 0 / 8%);
+        --mt-success-background: #ecfdf5;
+        --mt-success-border: #a7f3d0;
+        --mt-success-text: #065f46;
+        --mt-warning-background: #fffbeb;
+        --mt-warning-border: #f6d57a;
+        --mt-warning-text: #92400e;
+        --mt-danger-background: #fff1f2;
+        --mt-danger-border: #fecdd3;
+        --mt-danger-text: #be123c;
+      }
+
+      html[data-theme="dark"] {
+        --ruby-comment: #8b949e;
+        --ruby-const: #ffa657;
+        --ruby-embexpr: #c9d1d9;
+        --ruby-ident: #d2a8ff;
+        --ruby-number: #79c0ff;
+        --ruby-keyword: #ff7b72;
+        --ruby-string: #a5d6ff;
+        --required-color: #ff6685;
+        --mt-surface: var(--bulma-background);
+        --mt-surface-hover: var(--bulma-background-hover);
+        --mt-control: #202126;
+        --mt-control-hover: #2c2d34;
+        --mt-control-selected: #3a3b44;
+        --mt-border: rgb(255 255 255 / 10%);
+        --mt-text: #f4f4f5;
+        --mt-muted: #a1a1aa;
+        --mt-focus: #7b8cff;
+        --mt-control-shadow: 0 1px 2px rgb(0 0 0 / 32%);
+        --mt-card-shadow: none;
+        --mt-popover: #2c2d35;
+        --mt-popover-shadow: 0 18px 40px rgb(0 0 0 / 55%), 0 2px 10px rgb(0 0 0 / 35%);
+        --mt-success-background: rgb(16 185 129 / 12%);
+        --mt-success-border: rgb(52 211 153 / 30%);
+        --mt-success-text: #6ee7b7;
+        --mt-warning-background: rgb(245 158 11 / 12%);
+        --mt-warning-border: rgb(251 191 36 / 30%);
+        --mt-warning-text: #fbbf24;
+        --mt-danger-background: rgb(244 63 94 / 12%);
+        --mt-danger-border: rgb(251 113 133 / 30%);
+        --mt-danger-text: #fb7185;
       }
 
       @media (prefers-color-scheme: dark) {
-        :root {
+        :root:not([data-theme]) {
           --ruby-comment: #8b949e;
           --ruby-const: #ffa657;
           --ruby-embexpr: #c9d1d9;
@@ -44,6 +99,28 @@
           --ruby-keyword: #ff7b72;
           --ruby-string: #a5d6ff;
           --required-color: #ff6685;
+          --mt-surface: var(--bulma-background);
+          --mt-surface-hover: var(--bulma-background-hover);
+          --mt-control: #202126;
+          --mt-control-hover: #2c2d34;
+          --mt-control-selected: #3a3b44;
+          --mt-border: rgb(255 255 255 / 10%);
+          --mt-text: #f4f4f5;
+          --mt-muted: #a1a1aa;
+          --mt-focus: #7b8cff;
+          --mt-control-shadow: 0 1px 2px rgb(0 0 0 / 32%);
+          --mt-card-shadow: none;
+          --mt-popover: #2c2d35;
+          --mt-popover-shadow: 0 18px 40px rgb(0 0 0 / 55%), 0 2px 10px rgb(0 0 0 / 35%);
+          --mt-success-background: rgb(16 185 129 / 12%);
+          --mt-success-border: rgb(52 211 153 / 30%);
+          --mt-success-text: #6ee7b7;
+          --mt-warning-background: rgb(245 158 11 / 12%);
+          --mt-warning-border: rgb(251 191 36 / 30%);
+          --mt-warning-text: #fbbf24;
+          --mt-danger-background: rgb(244 63 94 / 12%);
+          --mt-danger-border: rgb(251 113 133 / 30%);
+          --mt-danger-text: #fb7185;
         }
       }
 
@@ -80,8 +157,39 @@
                     0 2px 4px -1px #0000001a;
       }
 
+      .task-card {
+        cursor: pointer;
+        isolation: isolate;
+        position: relative;
+      }
+
+      .task-card__link::after {
+        content: "";
+        inset: 0;
+        position: absolute;
+        z-index: 1;
+      }
+
+      .task-card a:not(.task-card__link),
+      .task-card button,
+      .task-card input,
+      .task-card select,
+      .task-card textarea {
+        position: relative;
+        z-index: 2;
+      }
+
+      .task-card:focus-within {
+        outline: 2px solid var(--mt-focus);
+        outline-offset: 2px;
+      }
+
+      html[data-theme="dark"] .box {
+        background-color: var(--bulma-background);
+      }
+
       @media (prefers-color-scheme: dark) {
-        .box {
+        :root:not([data-theme]) .box {
           background-color: var(--bulma-background);
         }
       }
@@ -91,9 +199,1348 @@
         color: var(--required-color);
         font-size: 12px;
       }
+
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .maintenance-navbar {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        padding-right: 0.75rem;
+      }
+
+      .maintenance-navbar__preferences {
+        align-items: center;
+        display: flex;
+      }
+
+      .display-menu {
+        position: relative;
+      }
+
+      .display-menu__trigger {
+        align-items: center;
+        background: var(--mt-control);
+        border: 0;
+        border-radius: 8px;
+        color: var(--mt-text);
+        cursor: pointer;
+        display: flex;
+        font-size: 0.75rem;
+        font-weight: 600;
+        gap: 0.5rem;
+        min-height: 2.5rem;
+        padding: 0 0.75rem;
+        transition: background-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+        user-select: none;
+      }
+
+      .display-menu__trigger::before {
+        content: none !important;
+        display: none;
+      }
+
+      .display-menu__trigger:hover {
+        background: var(--mt-surface-hover);
+      }
+
+      .display-menu__trigger:active {
+        transform: scale(0.98);
+      }
+
+      .display-menu__trigger:focus-visible {
+        box-shadow: 0 0 0 2px var(--mt-focus);
+        outline: none;
+      }
+
+      .display-menu__value {
+        color: var(--mt-muted);
+        font-weight: 500;
+      }
+
+      .display-menu__content {
+        background: var(--mt-popover);
+        border: 0;
+        border-radius: 10px;
+        box-shadow: var(--mt-popover-shadow);
+        display: grid;
+        gap: 1rem;
+        margin-top: 0.375rem;
+        padding: 0.75rem;
+        position: absolute;
+        right: 0;
+        width: 19rem;
+        z-index: 30;
+      }
+
+      .display-menu__group {
+        border: 0;
+        margin: 0;
+        min-inline-size: 0;
+        padding: 0;
+      }
+
+      .display-menu__label {
+        color: var(--mt-muted);
+        font-size: 0.6875rem;
+        font-weight: 600;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+
+      .preference-control {
+        align-items: center;
+        background: var(--mt-control);
+        border: 0;
+        border-radius: 8px;
+        display: flex;
+        gap: 2px;
+        margin: 0;
+        min-inline-size: 0;
+        padding: 2px;
+      }
+
+      .preference-control__option {
+        align-items: center;
+        appearance: none;
+        background: transparent;
+        border: 0;
+        border-radius: 6px;
+        color: var(--mt-muted);
+        cursor: pointer;
+        display: inline-flex;
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 500;
+        justify-content: center;
+        line-height: 1;
+        min-height: 2.25rem;
+        padding: 0 0.625rem;
+        flex: 1;
+        transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+        white-space: nowrap;
+      }
+
+      .preference-control__option:hover {
+        color: var(--mt-text);
+      }
+
+      .preference-control__option:active {
+        transform: scale(0.96);
+      }
+
+      .preference-control__option:focus-visible {
+        box-shadow: 0 0 0 2px var(--mt-focus);
+        outline: none;
+      }
+
+      .preference-control__option[aria-pressed="true"] {
+        background: var(--mt-control-selected);
+        box-shadow: var(--mt-control-shadow);
+        color: var(--mt-text);
+      }
+
+      html[data-appearance="modern"] body {
+        background: var(--bulma-body-background-color);
+        color: var(--mt-text);
+        font-size: 0.875rem;
+      }
+
+      html[data-appearance="modern"] .section {
+        padding: 2rem clamp(1rem, 3vw, 3rem) 4rem;
+      }
+
+      html[data-appearance="modern"] .section > .container {
+        max-width: 80rem;
+        width: 100%;
+      }
+
+      html[data-appearance="modern"] .tasks-index {
+        margin-inline: auto;
+        max-width: 72rem;
+      }
+
+      html[data-appearance="classic"] .task-tabs,
+      html[data-appearance="classic"] .task-pagination,
+      html[data-appearance="classic"] .task-group--empty {
+        display: none;
+      }
+
+      html[data-appearance="modern"] .task-tabs {
+        display: flex;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      html[data-appearance="modern"] .task-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      html[data-appearance="modern"] .display-menu__trigger,
+      html[data-appearance="modern"] .display-menu__content,
+      html[data-appearance="modern"] .preference-control {
+        border: 0;
+      }
+
+      html[data-appearance="modern"] .task-tabs__list {
+        align-items: center;
+        background: var(--mt-control);
+        border: 0;
+        border-radius: 8px;
+        display: inline-flex;
+        flex: none;
+        gap: 2px;
+        padding: 3px;
+      }
+
+      html[data-appearance="modern"] .task-tabs__trigger {
+        align-items: center;
+        border-radius: 6px;
+        color: var(--mt-muted);
+        display: inline-flex;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        gap: 0.5rem;
+        justify-content: center;
+        line-height: 1;
+        min-height: 2.25rem;
+        padding: 0 0.75rem;
+        text-decoration: none;
+        transition-duration: 150ms;
+        transition-property: background-color, box-shadow, color;
+        transition-timing-function: ease-out;
+        white-space: nowrap;
+      }
+
+      html[data-appearance="modern"] .task-tabs__trigger:hover {
+        background: var(--mt-surface-hover);
+        color: var(--mt-text);
+      }
+
+      html[data-appearance="modern"] .task-tabs__trigger.is-active {
+        background: var(--mt-control-selected);
+        box-shadow: var(--mt-control-shadow);
+        color: var(--mt-text);
+      }
+
+      html[data-appearance="modern"] .task-tabs__trigger:focus-visible {
+        outline: 2px solid var(--mt-focus);
+        outline-offset: 2px;
+      }
+
+      html[data-appearance="modern"] .task-tabs__count {
+        color: var(--mt-muted);
+        font-size: 0.6875rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      html[data-appearance="modern"] .task-group {
+        display: none;
+        margin-top: 0;
+      }
+
+      html[data-appearance="modern"] .task-group.is-active {
+        display: block;
+      }
+
+      html[data-appearance="modern"] .task-group__heading {
+        clip: rect(0, 0, 0, 0);
+        clip-path: inset(50%);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
+
+      html[data-appearance="modern"] .task-list,
+      html[data-appearance="modern"] .task-list--new {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        display: grid;
+        gap: 0.625rem;
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      html[data-appearance="modern"] .task-card {
+        background: var(--mt-surface);
+        border: 0;
+        border-radius: 10px;
+        box-shadow: var(--mt-card-shadow);
+        margin: 0;
+        min-width: 0;
+        padding: 0.75rem 1rem;
+        transition: background-color 120ms ease;
+      }
+
+      html[data-appearance="modern"] .task-card[data-page-visible="false"] {
+        display: none;
+      }
+
+      html[data-appearance="modern"] .task-card:hover {
+        background: var(--mt-surface-hover);
+      }
+
+      html[data-appearance="modern"] .task-card:focus-within {
+        background: var(--mt-surface-hover);
+      }
+
+      html[data-appearance="modern"] .task-card__heading {
+        align-items: center;
+        display: grid !important;
+        font-size: 0.875rem !important;
+        gap: 0.75rem;
+        grid-template-columns: minmax(0, 1fr) auto;
+        line-height: 1.35;
+        margin: 0 !important;
+        min-height: 1.75rem;
+      }
+
+      html[data-appearance="modern"] .task-card__heading:not(:last-child) {
+        margin-bottom: 0.75rem !important;
+      }
+
+      html[data-appearance="modern"] .task-card__link {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        text-wrap: pretty;
+      }
+
+      html[data-appearance="modern"] .task-card__heading .tag,
+      html[data-appearance="modern"] .run-card .tag {
+        border: 1px solid transparent;
+      }
+
+      html[data-appearance="modern"] .task-card__heading .tag {
+        border-radius: 9999px;
+        font-size: 0.6875rem;
+        height: 1.5rem;
+        justify-self: end;
+        line-height: 1;
+        margin: 0 !important;
+        padding: 0 0.5rem !important;
+      }
+
+      html[data-appearance="modern"] .tag[data-status="cancelling"],
+      html[data-appearance="modern"] .tag[data-status="cancelled"] {
+        background-color: var(--mt-control);
+        border-color: var(--mt-border);
+        color: var(--mt-text);
+      }
+
+      html[data-appearance="modern"] .task-group--new .task-card .tag {
+        display: none;
+      }
+
+      html[data-appearance="modern"] .task-card__timestamp {
+        color: var(--mt-muted);
+        font-size: 0.75rem !important;
+        font-variant-numeric: tabular-nums;
+        margin-bottom: 0.5rem;
+      }
+
+      html[data-appearance="modern"] .task-card .content {
+        font-size: 0.8125rem;
+        line-height: 1.5;
+      }
+
+      html[data-appearance="modern"] .task-card .content:last-child,
+      html[data-appearance="modern"] .task-card .block:last-child {
+        margin-bottom: 0;
+      }
+
+      html[data-appearance="modern"] .task-card .progress {
+        height: 0.375rem;
+        margin-top: 0.75rem !important;
+      }
+
+      html[data-appearance="modern"] .task-card hr {
+        background-color: transparent;
+        height: 0;
+        margin-block: 0.75rem;
+      }
+
+      html[data-appearance="modern"] .task-pagination {
+        align-items: center;
+        color: var(--mt-muted);
+        display: flex;
+        font-size: 0.75rem;
+        justify-content: space-between;
+        margin-top: 0.75rem;
+        min-height: 2.5rem;
+      }
+
+      html[data-appearance="modern"] .task-pagination__summary {
+        font-variant-numeric: tabular-nums;
+        margin: 0;
+      }
+
+      html[data-appearance="modern"] .task-pagination__summary span {
+        color: var(--mt-text);
+        font-weight: 500;
+      }
+
+      html[data-appearance="modern"] .task-pagination__controls,
+      html[data-appearance="modern"] .task-pagination__size-form,
+      html[data-appearance="modern"] .task-pagination__navigation {
+        align-items: center;
+        display: flex;
+      }
+
+      html[data-appearance="modern"] .task-pagination__controls {
+        gap: 0.5rem;
+      }
+
+      html[data-appearance="modern"] .task-pagination__size-form {
+        gap: 0.5rem;
+      }
+
+      html[data-appearance="modern"] .task-pagination__label {
+        color: var(--mt-muted);
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      html[data-appearance="modern"] .task-pagination__select-shell {
+        display: inline-flex;
+        position: relative;
+      }
+
+      html[data-appearance="modern"] .task-pagination__select-shell::after {
+        border-bottom: 1.5px solid var(--mt-muted);
+        border-right: 1.5px solid var(--mt-muted);
+        content: "";
+        height: 0.375rem;
+        pointer-events: none;
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-65%) rotate(45deg);
+        width: 0.375rem;
+      }
+
+      html[data-appearance="modern"] .task-pagination__select {
+        appearance: none;
+        background: var(--mt-control);
+        border: 0;
+        border-radius: 7px;
+        color: var(--mt-text);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+        height: 2.5rem;
+        line-height: 1;
+        padding: 0 2rem 0 0.75rem;
+        transition-duration: 150ms;
+        transition-property: background-color, box-shadow;
+        transition-timing-function: ease-out;
+        width: auto;
+      }
+
+      html[data-appearance="modern"] .task-pagination__select:hover {
+        background: var(--mt-control-hover);
+      }
+
+      html[data-appearance="modern"] .task-pagination__select:focus-visible {
+        box-shadow: 0 0 0 2px var(--mt-focus);
+        outline: none;
+      }
+
+      html[data-appearance="modern"] .task-pagination__navigation {
+        background: var(--mt-control);
+        border: 0;
+        border-radius: 8px;
+        gap: 1px;
+        padding: 0;
+      }
+
+      html[data-appearance="modern"] .task-pagination__button {
+        align-items: center;
+        border-radius: 6px;
+        color: var(--mt-text);
+        display: inline-flex;
+        font-size: 0.75rem;
+        font-weight: 500;
+        justify-content: center;
+        min-height: 2.5rem;
+        min-width: 4.5rem;
+        padding: 0 0.625rem;
+        text-decoration: none;
+        transition-duration: 150ms;
+        transition-property: background-color, color, transform;
+        transition-timing-function: ease-out;
+      }
+
+      html[data-appearance="modern"] a.task-pagination__button:hover {
+        background: var(--mt-control-hover);
+        color: var(--mt-text);
+      }
+
+      html[data-appearance="modern"] a.task-pagination__button:active {
+        transform: scale(0.96);
+      }
+
+      html[data-appearance="modern"] a.task-pagination__button:focus-visible {
+        box-shadow: 0 0 0 2px var(--mt-focus);
+        outline: none;
+      }
+
+      html[data-appearance="modern"] .task-pagination__button[aria-disabled="true"] {
+        color: var(--mt-muted);
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      html[data-appearance="modern"] .tasks-index__empty-state {
+        background: var(--mt-surface);
+        border: 0;
+        border-radius: 10px;
+        padding: 2rem;
+      }
+
+      html[data-appearance="modern"] .tasks-index__empty-state .title {
+        font-size: 1.125rem;
+      }
+
+      html[data-appearance="modern"] .task-group__empty-state {
+        align-items: center;
+        border: 0;
+        border-radius: 10px;
+        color: var(--mt-muted);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 12rem;
+        padding: 2rem;
+        text-align: center;
+      }
+
+      html[data-appearance="modern"] .task-group__empty-title {
+        color: var(--mt-text);
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.375rem;
+      }
+
+      html[data-appearance="modern"] .task-group__empty-state p {
+        font-size: 0.8125rem;
+        margin: 0;
+        text-wrap: pretty;
+      }
+
+      html[data-appearance="classic"] .run-card__body {
+        display: contents;
+      }
+
+      html[data-appearance="classic"] .task-file-upload__dropzone {
+        display: none;
+      }
+
+      html[data-appearance="modern"] .run-pagination-classic {
+        display: none !important;
+      }
+
+      html[data-appearance="modern"] .task-show {
+        margin-inline: auto;
+        max-width: 72rem;
+      }
+
+      html[data-appearance="modern"] .task-show__header {
+        margin-bottom: 1.25rem;
+      }
+
+      html[data-appearance="modern"] .task-show__title {
+        font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+        line-height: 1.25;
+        margin: 0;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+      }
+
+      html[data-appearance="modern"] .task-run-form-shell {
+        margin-bottom: 1.25rem;
+      }
+
+      html[data-appearance="modern"] .task-run-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem;
+      }
+
+      html[data-appearance="modern"] .task-run-form:has(.task-run-form__field, .grid) {
+        background: var(--mt-surface);
+        border: 0;
+        border-radius: 10px;
+        padding: 1rem;
+      }
+
+      html[data-appearance="modern"] .task-run-form .grid {
+        gap: 0.875rem;
+        margin: 0;
+      }
+
+      html[data-appearance="modern"] .task-run-form .cell {
+        min-width: 0;
+      }
+
+      html[data-appearance="modern"] .task-run-form .label,
+      html[data-appearance="modern"] .task-run-form__label {
+        color: var(--mt-text);
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.375rem;
+      }
+
+      html[data-appearance="modern"] .task-run-form .input,
+      html[data-appearance="modern"] .task-run-form .textarea,
+      html[data-appearance="modern"] .task-run-form select {
+        background: var(--mt-control);
+        border-color: var(--mt-border);
+        border-radius: 7px;
+        box-shadow: none;
+        color: var(--mt-text);
+        font-family: inherit;
+        font-size: 0.8125rem;
+        transition-duration: 150ms;
+        transition-property: background-color, border-color, box-shadow;
+        transition-timing-function: ease-out;
+      }
+
+      html[data-appearance="modern"] .task-run-form .input,
+      html[data-appearance="modern"] .task-run-form select {
+        min-height: 2.5rem;
+      }
+
+      html[data-appearance="modern"] .task-run-form .textarea {
+        min-height: 5.5rem;
+        resize: vertical;
+      }
+
+      html[data-appearance="modern"] .task-run-form .input:hover,
+      html[data-appearance="modern"] .task-run-form .textarea:hover,
+      html[data-appearance="modern"] .task-run-form select:hover {
+        border-color: var(--mt-muted);
+      }
+
+      html[data-appearance="modern"] .task-run-form .input:focus,
+      html[data-appearance="modern"] .task-run-form .textarea:focus,
+      html[data-appearance="modern"] .task-run-form select:focus {
+        border-color: var(--mt-focus);
+        box-shadow: 0 0 0 2px var(--mt-focus);
+      }
+
+      html[data-appearance="modern"] .task-run-form__field,
+      html[data-appearance="modern"] .task-run-form__actions,
+      html[data-appearance="modern"] .task-run-form__submit {
+        margin-bottom: 0 !important;
+      }
+
+      html[data-appearance="modern"] .button.task-run-form__submit {
+        border-radius: 6px;
+        color: #111111 !important;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        height: 2.5rem;
+        min-height: 2.5rem;
+        min-width: 5.5rem;
+        padding: 0 1.25rem;
+        transition-duration: 150ms;
+        transition-property: filter, transform;
+        transition-timing-function: ease-out;
+      }
+
+      html[data-appearance="modern"] .task-run-form__submit:hover {
+        filter: brightness(0.96);
+      }
+
+      html[data-appearance="modern"] .task-run-form__submit:active {
+        transform: scale(0.96);
+      }
+
+      html[data-appearance="modern"] .task-file-upload {
+        position: relative;
+      }
+
+      html[data-appearance="modern"] .task-file-upload__input {
+        clip: rect(0, 0, 0, 0);
+        clip-path: inset(50%);
+        height: 1px;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
+
+      html[data-appearance="modern"] .task-file-upload__dropzone {
+        align-items: center;
+        background: var(--mt-control);
+        border: 1px dashed var(--mt-border);
+        border-radius: 8px;
+        color: var(--mt-muted);
+        cursor: pointer;
+        display: grid;
+        font-size: 0.75rem;
+        gap: 0.25rem 0.5rem;
+        grid-template-columns: auto minmax(0, 1fr);
+        min-height: 4.5rem;
+        padding: 0.75rem;
+        transition-duration: 150ms;
+        transition-property: background-color, border-color, box-shadow, transform;
+        transition-timing-function: ease-out;
+      }
+
+      html[data-appearance="modern"] .task-file-upload__action {
+        color: var(--mt-text);
+        font-weight: 600;
+      }
+
+      html[data-appearance="modern"] .task-file-upload__hint {
+        color: var(--mt-muted);
+      }
+
+      html[data-appearance="modern"] .task-file-upload__name {
+        color: var(--mt-muted);
+        font-variant-numeric: tabular-nums;
+        grid-column: 1 / -1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      html[data-appearance="modern"] .task-file-upload__dropzone:hover,
+      html[data-appearance="modern"] .task-file-upload[data-dragging="true"] .task-file-upload__dropzone {
+        background: var(--mt-surface-hover);
+        border-color: var(--mt-focus);
+      }
+
+      html[data-appearance="modern"] .task-file-upload:focus-within .task-file-upload__dropzone {
+        border-color: var(--mt-focus);
+        box-shadow: 0 0 0 2px var(--mt-focus);
+      }
+
+      html[data-appearance="modern"] .task-file-upload[data-file-selected="true"] .task-file-upload__name {
+        color: var(--mt-text);
+        font-weight: 500;
+      }
+
+      html[data-appearance="modern"] .task-source {
+        background: var(--mt-surface);
+        border: 0;
+        border-radius: 10px;
+        box-shadow: var(--mt-card-shadow);
+        margin: 1.25rem 0 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      html[data-appearance="modern"] .task-source > summary {
+        align-items: center;
+        display: flex;
+        min-height: 2.75rem;
+        padding: 0.625rem 1rem;
+        position: relative;
+        transition: background-color 120ms ease;
+      }
+
+      html[data-appearance="modern"] .task-source > summary:hover {
+        background: var(--mt-surface-hover);
+      }
+
+      html[data-appearance="modern"] .task-source > summary:focus-visible,
+      html[data-appearance="modern"] .run-card__summary:focus-visible {
+        box-shadow: inset 0 0 0 2px var(--mt-focus);
+        outline: none;
+      }
+
+      html[data-appearance="modern"] .task-source > summary h5 {
+        color: var(--mt-muted);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        margin: 0;
+      }
+
+      html[data-appearance="modern"] .task-source > pre {
+        border-top: 0;
+        font-size: 0.75rem;
+        line-height: 1.55;
+        margin: 0;
+        max-height: 28rem;
+        overflow: auto;
+        padding: 1rem;
+      }
+
+      html[data-appearance="modern"] .task-runs {
+        margin-top: 1.5rem;
+      }
+
+      html[data-appearance="modern"] .task-runs > hr {
+        background: transparent;
+        height: 0;
+        margin: 1.5rem 0 1rem;
+      }
+
+      html[data-appearance="modern"] .task-runs__heading {
+        font-size: 0.9375rem;
+        line-height: 1.3;
+        margin-bottom: 0.75rem;
+      }
+
+      html[data-appearance="modern"] .task-runs__refresh-control .button {
+        border-radius: 6px;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        height: 2rem;
+        min-height: 2rem;
+        padding: 0 0.75rem;
+      }
+
+      html[data-appearance="modern"] .run-card {
+        background: var(--mt-surface);
+        border: 0;
+        border-radius: 10px;
+        box-shadow: var(--mt-card-shadow);
+        margin-bottom: 0.75rem;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      html[data-appearance="modern"] .run-card__summary {
+        min-height: 3rem;
+        padding: 0.625rem 1rem;
+        position: relative;
+        transition: background-color 120ms ease;
+      }
+
+      html[data-appearance="modern"] .run-card__summary:hover {
+        background: var(--mt-surface-hover);
+      }
+
+      html[data-appearance="modern"] .run-card[open] > .run-card__summary {
+        border-bottom: 0;
+      }
+
+      html[data-appearance="modern"] .run-card__identity {
+        min-width: 0;
+      }
+
+      html[data-appearance="modern"] .run-card__time {
+        font-size: 0.8125rem;
+        line-height: 1.3;
+        min-width: 0;
+        padding-left: 1.5rem !important;
+        padding-right: 0.5rem !important;
+      }
+
+      html[data-appearance="modern"] .run-card__time time {
+        font-variant-numeric: tabular-nums;
+      }
+
+      html[data-appearance="modern"] .run-card .tag {
+        border-radius: 9999px;
+        font-size: 0.6875rem;
+        height: 1.5rem;
+        line-height: 1;
+        margin: 0 0.5rem !important;
+        padding: 0 0.5rem !important;
+      }
+
+      html[data-appearance="modern"] .run-card__id {
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+        position: relative;
+        z-index: 1;
+      }
+
+      html[data-appearance="modern"] .run-card__body {
+        font-size: 0.8125rem;
+        padding: 0.75rem 1rem 1rem;
+      }
+
+      html[data-appearance="modern"] .run-card__body > .block,
+      html[data-appearance="modern"] .run-card__body > .content {
+        margin-bottom: 0.75rem;
+      }
+
+      html[data-appearance="modern"] .run-card__body > :last-child {
+        margin-bottom: 0;
+      }
+
+      html[data-appearance="modern"] .run-card .progress {
+        height: 0.3rem;
+        margin: 0 0 0.5rem !important;
+      }
+
+      html[data-appearance="modern"] .run-card .content,
+      html[data-appearance="modern"] .run-card .block,
+      html[data-appearance="modern"] .run-card p {
+        color: var(--mt-muted);
+        font-size: 0.8125rem;
+        line-height: 1.5;
+      }
+
+      html[data-appearance="modern"] .run-card .title.is-6 {
+        color: var(--mt-text);
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+
+      html[data-appearance="modern"] .run-card hr {
+        background: transparent;
+        height: 0;
+        margin: 0.75rem 0;
+      }
+
+      html[data-appearance="modern"] .run-card__actions {
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+
+      html[data-appearance="modern"] .run-card__actions .button {
+        border-radius: 6px;
+        box-shadow: none;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        height: 2rem;
+        min-height: 2rem;
+        padding: 0 0.75rem;
+        transition-duration: 150ms;
+        transition-property: filter, transform;
+        transition-timing-function: ease-out;
+      }
+
+      html[data-appearance="modern"] .run-card__actions .button.is-success {
+        color: #111111;
+      }
+
+      html[data-appearance="modern"] .run-card__actions .button:hover {
+        filter: brightness(0.96);
+      }
+
+      html[data-appearance="modern"] .run-card__actions .button:active {
+        transform: scale(0.96);
+      }
+
+      html[data-appearance="modern"] .run-card__actions .button:focus-visible {
+        box-shadow: 0 0 0 2px var(--mt-focus);
+        outline: none;
+      }
+
+      html[data-appearance="modern"] .run-card__actions .button[disabled],
+      html[data-appearance="modern"] .run-card__actions .button:disabled {
+        cursor: not-allowed;
+        filter: none;
+        opacity: 0.55;
+        transform: none;
+      }
+
+      html[data-appearance="modern"] .run-error {
+        background: var(--mt-danger-background);
+        border: 1px solid var(--mt-danger-border);
+        border-radius: 8px;
+        box-shadow: none;
+        color: var(--mt-danger-text);
+        overflow: hidden;
+      }
+
+      html[data-appearance="modern"] .run-error .card-header {
+        background: transparent;
+        border-bottom: 1px solid var(--mt-danger-border);
+        box-shadow: none;
+      }
+
+      html[data-appearance="modern"] .run-error .card-header-title {
+        color: var(--mt-danger-text);
+        font-size: 0.75rem;
+        padding: 0.625rem 0.75rem;
+      }
+
+      html[data-appearance="modern"] .run-error .card-content {
+        padding: 0.75rem;
+      }
+
+      html[data-appearance="modern"] .run-error code {
+        background: var(--mt-control);
+        border-radius: 6px;
+        color: var(--mt-danger-text);
+        display: block;
+        font-size: 0.6875rem;
+        line-height: 1.55;
+        max-height: 15rem;
+        overflow: auto;
+        padding: 0.625rem;
+      }
+
+      html[data-appearance="modern"] .run-pagination {
+        margin-top: 0.75rem;
+      }
+
+      html[data-appearance="modern"] .maintenance-flash {
+        border: 1px solid transparent;
+        border-radius: 8px;
+        box-shadow: none;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        margin: 0 auto 1rem;
+        max-width: 72rem;
+        padding: 0.75rem 1rem;
+      }
+
+      html[data-appearance="modern"] .maintenance-flash.is-success {
+        background: var(--mt-success-background);
+        border-color: var(--mt-success-border);
+        color: var(--mt-success-text);
+      }
+
+      html[data-appearance="modern"] .maintenance-flash.is-warning {
+        background: var(--mt-warning-background);
+        border-color: var(--mt-warning-border);
+        color: var(--mt-warning-text);
+      }
+
+      @media (max-width: 760px) {
+        .maintenance-navbar {
+          align-items: stretch;
+          gap: 0;
+          padding-right: 0;
+        }
+
+        .maintenance-navbar__preferences {
+          padding-right: 0.75rem;
+        }
+
+        .display-menu__trigger > span:first-child {
+          display: none;
+        }
+
+        .display-menu__content {
+          position: fixed;
+          right: 0.75rem;
+          top: 3.25rem;
+          width: min(19rem, calc(100vw - 1.5rem));
+        }
+
+        .preference-control__option {
+          min-height: 2.5rem;
+        }
+
+        html[data-appearance="modern"] .section {
+          padding: 1.25rem 0.75rem 3rem;
+        }
+
+        html[data-appearance="modern"] .task-tabs__trigger {
+          min-height: 2.5rem;
+        }
+
+        html[data-appearance="modern"] .task-card {
+          padding: 0.75rem;
+        }
+
+        html[data-appearance="modern"] .task-card__heading {
+          font-size: 0.8125rem !important;
+          gap: 0.5rem;
+        }
+
+        html[data-appearance="modern"] .task-pagination {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 0.625rem;
+        }
+
+        html[data-appearance="modern"] .task-pagination__controls {
+          justify-content: space-between;
+          width: 100%;
+        }
+
+        html[data-appearance="modern"] .task-show__header {
+          margin-bottom: 1rem;
+        }
+
+        html[data-appearance="modern"] .task-run-form__submit,
+        html[data-appearance="modern"] .task-runs__refresh-control .button,
+        html[data-appearance="modern"] .task-pagination__select,
+        html[data-appearance="modern"] .task-pagination__button,
+        html[data-appearance="modern"] .run-card__actions .button {
+          height: 2.75rem;
+          min-height: 2.75rem;
+        }
+
+        html[data-appearance="modern"] .task-run-form:has(.task-run-form__field, .grid) {
+          padding: 0.75rem;
+        }
+
+        html[data-appearance="modern"] .task-file-upload__dropzone {
+          grid-template-columns: 1fr;
+          min-height: 5.5rem;
+        }
+
+        html[data-appearance="modern"] .task-file-upload__name {
+          grid-column: 1;
+        }
+
+        html[data-appearance="modern"] .run-card__summary {
+          align-items: flex-start !important;
+          gap: 0.5rem;
+          min-height: 3.25rem;
+          padding: 0.75rem;
+        }
+
+        html[data-appearance="modern"] .run-card__identity {
+          align-items: flex-start !important;
+          flex-wrap: wrap;
+        }
+
+        html[data-appearance="modern"] .run-card__time {
+          font-size: 0.75rem;
+          width: 100%;
+        }
+
+        html[data-appearance="modern"] .run-card .tag {
+          margin-left: 1.5rem !important;
+          margin-top: 0.375rem !important;
+        }
+
+        html[data-appearance="modern"] .run-card__body {
+          padding: 0.75rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .display-menu__trigger,
+        .preference-control__option,
+        html[data-appearance="modern"] .task-tabs__trigger,
+        html[data-appearance="modern"] .task-card,
+        html[data-appearance="modern"] .task-pagination__button,
+        html[data-appearance="modern"] .task-pagination__select,
+        html[data-appearance="modern"] .task-run-form .input,
+        html[data-appearance="modern"] .task-run-form .textarea,
+        html[data-appearance="modern"] .task-run-form select,
+        html[data-appearance="modern"] .task-run-form__submit,
+        html[data-appearance="modern"] .task-file-upload__dropzone,
+        html[data-appearance="modern"] .task-source > summary,
+        html[data-appearance="modern"] .run-card__summary,
+        html[data-appearance="modern"] .run-card__actions .button {
+          transition-duration: 0.01ms;
+        }
+      }
     </style>
 
     <script>
+      const preferenceKeys = {
+        appearance: "maintenance_tasks.appearance",
+        theme: "maintenance_tasks.theme",
+      }
+
+      const preferenceValues = {
+        appearance: ["classic", "modern"],
+        theme: ["system", "light", "dark"],
+      }
+
+      function storedPreference(name, fallback) {
+        try {
+          let value = window.localStorage.getItem(preferenceKeys[name])
+          if (name === "appearance" && value === "refreshed") value = "modern"
+          return preferenceValues[name].includes(value) ? value : fallback
+        } catch (_error) {
+          return fallback
+        }
+      }
+
+      function updatePreferenceControl(name, value) {
+        document
+          .querySelectorAll(`[data-preference-control="${name}"] [data-preference-value]`)
+          .forEach(button => {
+            button.setAttribute("aria-pressed", String(button.dataset.preferenceValue === value))
+          })
+
+        const appearance = document.documentElement.dataset.appearance
+        const theme = document.documentElement.dataset.themePreference
+        const summary = document.querySelector("[data-display-preference-summary]")
+
+        if (summary && appearance && theme) {
+          summary.textContent = `${capitalize(appearance)} · ${capitalize(theme)}`
+        }
+      }
+
+      function capitalize(value) {
+        return value.charAt(0).toUpperCase() + value.slice(1)
+      }
+
+      function persistPreference(name, value) {
+        try {
+          window.localStorage.setItem(preferenceKeys[name], value)
+        } catch (_error) {
+          // Preferences remain active for this page when storage is unavailable.
+        }
+      }
+
+      function applyAppearance(value, persist = false) {
+        document.documentElement.dataset.appearance = value
+        updatePreferenceControl("appearance", value)
+        if (persist) persistPreference("appearance", value)
+      }
+
+      function applyTheme(value, persist = false) {
+        document.documentElement.dataset.themePreference = value
+        document.documentElement.style.colorScheme = value === "system" ? "light dark" : value
+
+        if (value === "system") {
+          document.documentElement.removeAttribute("data-theme")
+        } else {
+          document.documentElement.dataset.theme = value
+        }
+
+        updatePreferenceControl("theme", value)
+        if (persist) persistPreference("theme", value)
+      }
+
+      function bindPreferenceControls() {
+        document.querySelectorAll("[data-preference-control]").forEach(control => {
+          control.addEventListener("click", event => {
+            const button = event.target.closest("button[data-preference-value]")
+            if (!button || !control.contains(button)) return
+
+            if (control.dataset.preferenceControl === "appearance") {
+              applyAppearance(button.dataset.preferenceValue, true)
+            } else {
+              applyTheme(button.dataset.preferenceValue, true)
+            }
+          })
+        })
+      }
+
+      function bindDisplayMenu() {
+        const menu = document.querySelector("details.display-menu")
+        if (!menu) return
+
+        document.addEventListener("click", event => {
+          if (menu.open && !menu.contains(event.target)) menu.removeAttribute("open")
+        })
+
+        menu.addEventListener("keydown", event => {
+          if (event.key !== "Escape" || !menu.open) return
+
+          menu.removeAttribute("open")
+          menu.querySelector("summary").focus()
+        })
+      }
+
+      function bindPaginationControls() {
+        document.addEventListener("change", event => {
+          const select = event.target.closest("select[data-per-page-select]")
+          if (!select) return
+
+          select.form.requestSubmit()
+        })
+      }
+
+      function bindFileUploads() {
+        document.querySelectorAll("[data-file-upload]").forEach(upload => {
+          const input = upload.querySelector("[data-file-upload-input]")
+          const fileName = upload.querySelector("[data-file-upload-name]")
+          if (!input || !fileName) return
+
+          const updateFileName = () => {
+            const file = input.files && input.files[0]
+            upload.dataset.fileSelected = String(Boolean(file))
+            fileName.textContent = file ? file.name : "No file selected"
+          }
+
+          input.addEventListener("change", updateFileName)
+
+          upload.addEventListener("dragenter", event => {
+            event.preventDefault()
+            upload.dataset.dragging = "true"
+          })
+
+          upload.addEventListener("dragover", event => {
+            event.preventDefault()
+          })
+
+          upload.addEventListener("dragleave", event => {
+            if (!upload.contains(event.relatedTarget)) delete upload.dataset.dragging
+          })
+
+          upload.addEventListener("drop", event => {
+            event.preventDefault()
+            delete upload.dataset.dragging
+
+            const files = event.dataTransfer && event.dataTransfer.files
+            if (!files || files.length === 0) return
+
+            input.files = files
+            input.dispatchEvent(new Event("change", { bubbles: true }))
+          })
+
+          updateFileName()
+        })
+      }
+
+      const initialAppearance = storedPreference("appearance", "classic")
+      const initialTheme = storedPreference("theme", "system")
+      applyAppearance(initialAppearance)
+      applyTheme(initialTheme)
+
+      function progressStates(target) {
+        return new Map(
+          Array.from(
+            target.querySelectorAll("progress[data-progress-run-id]"),
+            progress => [
+              progress.dataset.progressRunId,
+              progress.hasAttribute("value") ? {
+                value: Number(progress.value),
+                max: Number(progress.max),
+              } : null,
+            ],
+          ),
+        )
+      }
+
+      function animateProgressBars(target, previousStates) {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
+        target
+          .querySelectorAll("progress[data-progress-run-id][value]")
+          .forEach(progress => {
+            const previousState = previousStates.get(progress.dataset.progressRunId)
+            const nextValue = Number(progress.value)
+            const startValue = previousState &&
+              (previousState.value / previousState.max) * Number(progress.max)
+
+            if (
+              !Number.isFinite(startValue) ||
+              startValue === nextValue
+            ) return
+
+            const startedAt = performance.now()
+            const duration = 450
+
+            progress.value = startValue
+
+            function drawFrame(timestamp) {
+              const elapsed = Math.min((timestamp - startedAt) / duration, 1)
+              const eased = 1 - Math.pow(1 - elapsed, 3)
+
+              progress.value = startValue + ((nextValue - startValue) * eased)
+
+              if (elapsed < 1 && progress.isConnected) {
+                window.requestAnimationFrame(drawFrame)
+              }
+            }
+
+            window.requestAnimationFrame(drawFrame)
+          })
+      }
+
       function refresh() {
         const target = document.querySelector("[data-refresh]")
         if (!target || !target.dataset.refresh) return
@@ -105,7 +1552,10 @@
               const newDocument = new DOMParser().parseFromString(text, "text/html")
               const newTarget = newDocument.querySelector("[data-refresh]")
               if (newTarget) {
+                const previousStates = progressStates(target)
+
                 target.replaceWith(newTarget)
+                animateProgressBars(newTarget, previousStates)
               }
               document.body.style.cursor = ""
               refresh()
@@ -114,7 +1564,23 @@
           )
         }, 3000)
       }
-      document.addEventListener('DOMContentLoaded', refresh)
+      document.addEventListener("DOMContentLoaded", () => {
+        updatePreferenceControl("appearance", initialAppearance)
+        updatePreferenceControl("theme", initialTheme)
+        bindPreferenceControls()
+        bindDisplayMenu()
+        bindPaginationControls()
+        bindFileUploads()
+        refresh()
+      })
+
+      window.addEventListener("storage", event => {
+        if (event.key === preferenceKeys.appearance) {
+          applyAppearance(storedPreference("appearance", "classic"))
+        } else if (event.key === preferenceKeys.theme) {
+          applyTheme(storedPreference("theme", "system"))
+        }
+      })
     </script>
   </head>
 
@@ -124,9 +1590,9 @@
     <section class="section">
       <div class="container">
         <% if notice %>
-          <div class="notification is-success"><%= notice %></div>
+          <div class="notification is-success maintenance-flash" role="status"><%= notice %></div>
         <% elsif alert %>
-          <div class="notification is-warning"><%= alert %></div>
+          <div class="notification is-warning maintenance-flash" role="alert"><%= alert %></div>
         <% end %>
 
         <%= yield %>

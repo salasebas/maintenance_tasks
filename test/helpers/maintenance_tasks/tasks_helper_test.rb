@@ -5,7 +5,7 @@ require "test_helper"
 module MaintenanceTasks
   class TasksHelperTest < ActionView::TestCase
     setup do
-      @run = Run.new
+      @run = Run.new(id: 42)
     end
 
     test "#format_backtrace converts the backtrace to a formatted string" do
@@ -28,7 +28,7 @@ module MaintenanceTasks
       )
 
       expected = '<div class="block"><progress value="42" max="84" ' \
-        'class="progress mt-4 is-primary is-light"></progress>' \
+        'class="progress mt-4 is-primary is-light" data-progress-run-id="42"></progress>' \
         "<p><i>Almost there!</i></p></div>"
       assert_equal expected, progress(@run)
     end
@@ -44,13 +44,13 @@ module MaintenanceTasks
       )
 
       expected = '<div class="block"><progress max="84" ' \
-        'class="progress mt-4 is-primary is-light"></progress>' \
+        'class="progress mt-4 is-primary is-light" data-progress-run-id="42"></progress>' \
         "<p><i>Almost there!</i></p></div>"
       assert_equal expected, progress(@run)
     end
 
     test "#status_tag renders a span with the appropriate tag based on status" do
-      expected = '<span class="tag has-text-weight-medium px-2 mx-4 is-warning is-light">Pausing</span>'
+      expected = '<span class="tag has-text-weight-medium px-2 mx-4 is-warning" data-status="pausing">Pausing</span>'
       assert_equal expected, status_tag("pausing")
     end
 

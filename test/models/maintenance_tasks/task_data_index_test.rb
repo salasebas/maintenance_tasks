@@ -36,6 +36,23 @@ module MaintenanceTasks
       )
     end
 
+    test ".available_tasks uses the run id to order otherwise identical active tasks" do
+      created_at = Time.current
+      runs = 2.times.map do
+        Run.create!(
+          task_name: "Maintenance::TestTask",
+          status: :enqueued,
+          created_at: created_at,
+        )
+      end
+
+      run_ids = TaskDataIndex.available_tasks
+        .select { |task| task.name == "Maintenance::TestTask" }
+        .map { |task| task.related_run.id }
+
+      assert_equal runs.map(&:id).sort_by(&:to_s), run_ids
+    end
+
     test ".available_tasks orders new tasks alphabetically by name" do
       new_task_names = TaskDataIndex.available_tasks
         .select { |task| task.category == :new }

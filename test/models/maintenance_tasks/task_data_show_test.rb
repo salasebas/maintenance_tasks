@@ -105,6 +105,12 @@ module MaintenanceTasks
       assert_equal 42, runs_page.cursor
     end
 
+    test "#runs_page forwards the requested page size" do
+      runs_page = TaskDataShow.new("MaintenanceTasks::UpdatePostsTask", runs_per_page: 4).runs_page
+
+      assert_equal 4, runs_page.per_page
+    end
+
     test "#parameter_names returns list of parameter names for Tasks supporting parameters" do
       assert_equal(
         [

@@ -1,6 +1,6 @@
-<%= tag.div(data: { refresh: (defined?(@refresh) && @refresh) || "" }) do %>
+<%= tag.div(class: "tasks-index", data: { refresh: @available_tasks.any? && @auto_refresh_enabled || "" }) do %>
   <% if @available_tasks.empty? %>
-    <div class="content is-large">
+    <div class="content is-large tasks-index__empty-state">
       <h3 class="title is-3"> The MaintenanceTasks gem has been successfully installed! </h3>
       <p>
         Any new Tasks will show up here. To start writing your first Task,
@@ -8,19 +8,112 @@
       </p>
     </div>
   <% else %>
-    <% if active_tasks = @available_tasks[:active] %>
-      <h3 class="title is-4 has-text-weight-bold">Active Tasks</h3>
-      <%= render partial: 'task', collection: active_tasks %>
-    <% end %>
-    <% if new_tasks = @available_tasks[:new] %>
-      <h3 class="title is-4 has-text-weight-bold">New Tasks</h3>
-      <div class="grid is-col-min-20">
-        <%= render partial: 'task', collection: new_tasks %>
+    <%
+      task_categories = {
+        active: ["Active Tasks", "There are no active tasks right now."],
+        new: ["New Tasks", "There are no new tasks right now."],
+        completed: ["Completed Tasks", "There are no completed tasks yet."],
+      }
+      tab_categories = [:new, :active, :completed]
+      refresh_params = { tab: params[:tab], per_page: params[:per_page] }.compact
+    %>
+
+    <div class="is-flex is-justify-content-flex-end mb-2 task-runs__refresh-control">
+      <% if @auto_refresh_enabled %>
+        <%= link_to "Disable auto-refresh", tasks_path(refresh_params.merge(refresh: false)), class: "button is-small is-light" %>
+      <% else %>
+        <%= link_to "Enable auto-refresh", tasks_path(refresh_params), class: "button is-small is-light" %>
+      <% end %>
+    </div>
+
+    <nav class="task-tabs" aria-label="Task categories">
+      <div class="task-tabs__list">
+        <% tab_categories.each do |category| %>
+          <% label = task_categories.fetch(category).first %>
+          <% selected = @selected_category == category.to_s %>
+          <%= link_to root_path(tab: category, per_page: @tasks_page.per_page, refresh: params[:refresh]),
+            class: ["task-tabs__trigger", ("is-active" if selected)],
+            aria: { current: ("page" if selected) } do %>
+            <span><%= label %></span>
+            <span class="task-tabs__count" aria-hidden="true"><%= @available_tasks.fetch(category, []).length %></span>
+          <% end %>
+        <% end %>
       </div>
-    <% end %>
-    <% if completed_tasks = @available_tasks[:completed] %>
-      <h3 class="title is-4 has-text-weight-bold">Completed Tasks</h3>
-      <%= render partial: 'task', collection: completed_tasks %>
+    </nav>
+
+    <% task_categories.each do |category, (label, empty_message)| %>
+      <% tasks = @available_tasks.fetch(category, []) %>
+      <% selected = @selected_category == category.to_s %>
+      <section
+        class="task-group task-group--<%= category %> <%= "task-group--empty" if tasks.empty? %> <%= "is-active" if selected %>"
+        aria-labelledby="<%= category %>-tasks-heading"
+      >
+        <h3 class="title is-4 has-text-weight-bold task-group__heading" id="<%= category %>-tasks-heading"><%= label %></h3>
+        <% if tasks.any? %>
+          <div class="<%= "grid is-col-min-20 " if category == :new %>task-list <%= "task-list--new" if category == :new %>">
+            <%= render partial: "task", collection: tasks, locals: { tasks_page: (selected ? @tasks_page : nil) } %>
+          </div>
+
+          <% if selected %>
+            <footer class="task-pagination">
+              <p class="task-pagination__summary" aria-live="polite">
+                <span><%= @tasks_page.range_start %>–<%= @tasks_page.range_end %></span>
+                of <%= @tasks_page.total_count %>
+              </p>
+
+              <div class="task-pagination__controls">
+                <%= form_with url: root_path, method: :get, local: true, class: "task-pagination__size-form" do |form| %>
+                  <%= form.hidden_field :tab, value: category %>
+                  <%= form.hidden_field :refresh, value: params[:refresh] if params.key?(:refresh) %>
+                  <span class="task-pagination__select-shell">
+                    <% page_size_options = (MaintenanceTasks::TasksPage::PER_PAGE_OPTIONS + [@tasks_page.per_page]).uniq.sort %>
+                    <%= form.select :per_page,
+                      options_for_select(page_size_options, @tasks_page.per_page),
+                      {},
+                      class: "task-pagination__select",
+                      data: { per_page_select: true },
+                      aria: { label: "Rows per page" } %>
+                  </span>
+                <% end %>
+
+                <% if @tasks_page.paginated? %>
+                  <nav class="task-pagination__navigation" aria-label="Task pagination">
+                    <% previous_path = root_path(
+                      tab: category,
+                      per_page: @tasks_page.per_page,
+                      cursor: @tasks_page.previous_cursor,
+                      refresh: params[:refresh],
+                    ) %>
+                    <% next_path = root_path(
+                      tab: category,
+                      per_page: @tasks_page.per_page,
+                      cursor: @tasks_page.next_cursor,
+                      refresh: params[:refresh],
+                    ) %>
+
+                    <% if @tasks_page.first? %>
+                      <span class="task-pagination__button" aria-disabled="true">Previous</span>
+                    <% else %>
+                      <%= link_to "Previous", previous_path, class: "task-pagination__button" %>
+                    <% end %>
+
+                    <% if @tasks_page.last? %>
+                      <span class="task-pagination__button" aria-disabled="true">Next</span>
+                    <% else %>
+                      <%= link_to "Next", next_path, class: "task-pagination__button" %>
+                    <% end %>
+                  </nav>
+                <% end %>
+              </div>
+            </footer>
+          <% end %>
+        <% else %>
+          <div class="task-group__empty-state">
+            <h4 class="task-group__empty-title"><%= empty_message %></h4>
+            <p>Tasks in this category will appear here automatically.</p>
+          </div>
+        <% end %>
+      </section>
     <% end %>
   <% end %>
 <% end %>

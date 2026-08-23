@@ -12,7 +12,7 @@ module MaintenanceTasks
       "enqueued" => ["is-primary is-light"],
       "running" => ["is-info"],
       "interrupted" => ["is-info", "is-light"],
-      "pausing" => ["is-warning", "is-light"],
+      "pausing" => ["is-warning"],
       "paused" => ["is-warning"],
       "succeeded" => ["is-success"],
       "cancelling" => ["is-light"],
@@ -48,6 +48,7 @@ module MaintenanceTasks
         value: progress.value,
         max: progress.max,
         class: ["progress", "mt-4"] + STATUS_COLOURS.fetch(run.status),
+        data: { progress_run_id: run.id },
       )
       progress_text = tag.p(tag.i(progress.text))
       tag.div(progress_bar + progress_text, class: "block")
@@ -63,6 +64,7 @@ module MaintenanceTasks
       tag.span(
         status.capitalize,
         class: ["tag", "has-text-weight-medium", "px-2", "mx-4"] + STATUS_COLOURS.fetch(status),
+        data: { status: status },
       )
     end
 

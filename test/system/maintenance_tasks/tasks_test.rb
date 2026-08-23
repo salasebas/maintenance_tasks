@@ -46,6 +46,207 @@ module MaintenanceTasks
       assert_equal expected, page.all("h3").map(&:text)
     end
 
+    test "auto-refresh is not enabled when there are no tasks" do
+      TaskDataIndex.stubs(available_tasks: [])
+
+      visit maintenance_tasks_path
+
+      assert_text "The MaintenanceTasks gem has been successfully installed!"
+      assert_selector "[data-refresh='']"
+      assert_no_selector "[data-refresh=true]"
+    end
+
+    test "toggle auto-refresh on the index page" do
+      tasks_path = maintenance_tasks.tasks_path
+
+      visit tasks_path
+
+      assert_selector "[data-refresh=true]"
+      assert_link "Disable auto-refresh", href: "#{tasks_path}?refresh=false"
+
+      click_on "Disable auto-refresh"
+
+      assert_no_selector "[data-refresh=true]"
+      assert_link "Enable auto-refresh", href: tasks_path
+
+      click_on "Enable auto-refresh"
+
+      assert_selector "[data-refresh=true]"
+      assert_link "Disable auto-refresh", href: "#{tasks_path}?refresh=false"
+    end
+
+    test "hide the auto-refresh toggle when there are no tasks" do
+      TaskDataIndex.stubs(available_tasks: [])
+
+      visit maintenance_tasks_path
+
+      assert_no_link "Disable auto-refresh"
+      assert_no_link "Enable auto-refresh"
+    end
+
+    test "navigates task categories with modern tabs" do
+      visit maintenance_tasks_path
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
+      visit maintenance_tasks_path
+
+      assert_selector ".task-tabs__trigger.is-active[aria-current=page]", text: "New Tasks"
+      assert_selector ".task-group--new.is-active", visible: true
+      assert_no_selector ".task-group--active", visible: true
+      assert_no_selector ".task-group--completed", visible: true
+      assert_no_selector ".task-group--new .task-card .tag", visible: true
+
+      within ".task-tabs" do
+        click_link "Completed Tasks"
+      end
+
+      assert_selector ".task-tabs__trigger.is-active[aria-current=page]", text: "Completed Tasks"
+      assert_selector ".task-group--completed.is-active", visible: true
+      assert_no_selector ".task-group--new", visible: true
+      assert_selector ".task-group--completed .task-card .tag", text: "Succeeded", visible: true
+    end
+
+    test "shows an empty state for a selected task category" do
+      Run.active.delete_all
+      visit maintenance_tasks_path
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
+      visit maintenance_tasks_path(tab: "active")
+
+      assert_selector ".task-tabs__trigger.is-active[aria-current=page]", text: "Active Tasks"
+      assert_text "There are no active tasks right now."
+      assert_no_selector ".task-group--active .task-card", visible: true
+    end
+
+    test "paginates modern task categories and keeps the page size in the URL" do
+      tasks = 51.times.map do |index|
+        TaskDataIndex.new(format("Maintenance::GeneratedTask%02d", index))
+      end
+      TaskDataIndex.stubs(:available_tasks).returns(tasks)
+
+      visit maintenance_tasks_path(refresh: false)
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
+      visit maintenance_tasks_path(tab: "new", refresh: false)
+
+      assert_selector ".task-pagination", visible: true
+      assert_text "1–50 of 51"
+      assert_equal 50, page.all(".task-card", visible: true).length
+
+      within ".task-pagination" do
+        click_link "Next"
+      end
+
+      query = Rack::Utils.parse_query(URI(page.current_url).query)
+      assert_equal "new", query["tab"]
+      assert_equal "50", query["per_page"]
+      assert query["cursor"].present?
+      assert_text "51–51 of 51"
+      assert_equal 1, page.all(".task-card", visible: true).length
+
+      within ".task-pagination" do
+        click_link "Previous"
+        find("select[data-per-page-select]").select("25")
+      end
+
+      query = Rack::Utils.parse_query(URI(page.current_url).query)
+      assert_equal({ "tab" => "new", "per_page" => "25", "refresh" => "false" }, query)
+      assert_text "1–25 of 51"
+      assert_equal 25, page.all(".task-card", visible: true).length
+
+      find("select[data-per-page-select]").select("100")
+
+      query = Rack::Utils.parse_query(URI(page.current_url).query)
+      assert_equal({ "tab" => "new", "per_page" => "100", "refresh" => "false" }, query)
+      assert_selector ".task-pagination", visible: true
+      assert_no_selector ".task-pagination__navigation", visible: true
+      assert_equal "100", find("select[data-per-page-select]").value
+      assert_equal 51, page.all(".task-card", visible: true).length
+
+      find("select[data-per-page-select]").select("25")
+
+      assert_text "1–25 of 51"
+      assert_equal 25, page.all(".task-card", visible: true).length
+    end
+
+    test "uses a custom positive page size from the URL" do
+      tasks = 51.times.map do |index|
+        TaskDataIndex.new(format("Maintenance::GeneratedTask%02d", index))
+      end
+      TaskDataIndex.stubs(:available_tasks).returns(tasks)
+
+      visit maintenance_tasks_path(refresh: false)
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
+      visit maintenance_tasks_path(tab: "new", per_page: 4, refresh: false)
+
+      assert_text "1–4 of 51"
+      assert_equal "4", find("select[data-per-page-select]").value
+      assert_equal 4, page.all(".task-card", visible: true).length
+
+      find("select[data-per-page-select]").select("25")
+
+      query = Rack::Utils.parse_query(URI(page.current_url).query)
+      assert_equal({ "tab" => "new", "per_page" => "25", "refresh" => "false" }, query)
+      assert_equal 25, page.all(".task-card", visible: true).length
+    end
+
+    test "keeps the complete task list visible in classic mode" do
+      tasks = 51.times.map do |index|
+        TaskDataIndex.new(format("Maintenance::GeneratedTask%02d", index))
+      end
+      TaskDataIndex.stubs(:available_tasks).returns(tasks)
+
+      visit maintenance_tasks_path(tab: "new", per_page: 25, refresh: false)
+
+      assert_selector "html[data-appearance=classic]"
+      assert_no_selector ".task-pagination", visible: true
+      assert_equal 51, page.all(".task-card", visible: true).length
+    end
+
+    test "opens a Task by clicking anywhere on its modern row" do
+      visit maintenance_tasks_path
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
+      visit maintenance_tasks_path
+
+      find(".task-card", text: "Maintenance::BatchImportPostsTask").click
+
+      assert_title "Maintenance::BatchImportPostsTask"
+    end
+
+    test "changes and persists display preferences" do
+      visit maintenance_tasks_path
+      page.execute_script("window.localStorage.clear()")
+      visit maintenance_tasks_path
+
+      assert_selector "html[data-appearance=classic][data-theme-preference=system]"
+      assert_equal "Classic · System", find("[data-display-preference-summary]").text
+
+      find("summary", text: "Display").click
+      within "[data-preference-control=appearance]" do
+        click_button "Modern"
+        assert_selector "button[data-preference-value=modern][aria-pressed=true]"
+      end
+      within "[data-preference-control=theme]" do
+        click_button "Dark"
+        assert_selector "button[data-preference-value=dark][aria-pressed=true]"
+      end
+
+      assert_selector "html[data-appearance=modern][data-theme=dark]"
+      assert_equal "modern", page.evaluate_script("window.localStorage.getItem('maintenance_tasks.appearance')")
+      assert_equal "dark", page.evaluate_script("window.localStorage.getItem('maintenance_tasks.theme')")
+
+      visit maintenance_tasks_path
+
+      assert_selector "html[data-appearance=modern][data-theme=dark]"
+      assert_equal "Modern · Dark", find("[data-display-preference-summary]").text
+
+      find("summary", text: "Display").click
+      within "[data-preference-control=theme]" do
+        click_button "System"
+        assert_selector "button[data-preference-value=system][aria-pressed=true]"
+      end
+
+      assert_selector "html[data-theme-preference=system]"
+      assert_nil find("html", visible: :all)["data-theme"]
+    end
+
     test "show a Task" do
       visit maintenance_tasks_path
 
@@ -70,6 +271,32 @@ module MaintenanceTasks
       assert_equal ["Active Runs", "Previous Runs"], page.all("h4").map(&:text)
       assert_text(/July 18, 2022 11:05 Paused #\d/)
       assert_text(/January 01, 2020 01:00 Succeeded #\d/)
+    end
+
+    test "toggle auto-refresh on a Task with active runs" do
+      task_path = maintenance_tasks.task_path("Maintenance::UpdatePostsTask")
+
+      visit task_path
+
+      assert_selector "[data-refresh=true]"
+      assert_link "Disable auto-refresh", href: "#{task_path}?refresh=false"
+
+      click_on "Disable auto-refresh"
+
+      assert_no_selector "[data-refresh=true]"
+      assert_link "Enable auto-refresh", href: task_path
+
+      click_on "Enable auto-refresh"
+
+      assert_selector "[data-refresh=true]"
+      assert_link "Disable auto-refresh", href: "#{task_path}?refresh=false"
+    end
+
+    test "hide the auto-refresh toggle when a Task has no active runs" do
+      visit maintenance_tasks.task_path("Maintenance::ImportPostsTask")
+
+      assert_no_link "Disable auto-refresh"
+      assert_no_link "Enable auto-refresh"
     end
 
     test "show a Task with stale run" do
@@ -235,6 +462,15 @@ module MaintenanceTasks
       assert_equal(["", "true", "false"], boolean_dropdown_field_options)
     end
 
+    test "refresh=false does not interfere with Task parameters" do
+      visit maintenance_tasks.task_path("Maintenance::ParamsTask", params: {
+        refresh: false,
+        content: "string content",
+      })
+
+      assert_field "task[content]", with: "string content"
+    end
+
     test "view a Task with multiple pages of Runs" do
       Run.create!(
         task_name: "Maintenance::TestTask",
@@ -261,10 +497,53 @@ module MaintenanceTasks
 
       click_on("Maintenance::TestTask")
       assert_no_text "Errored"
+      assert_no_link "Previous page"
 
       click_on("Next page")
       assert_text "Errored"
       assert_no_link "Next page"
+      assert_link "Previous page"
+
+      click_on("Previous page")
+      assert_no_text "Errored"
+      assert_no_link "Previous page"
+      assert_link "Next page"
+    end
+
+    test "change the number of Previous Runs shown per page" do
+      12.times do |i|
+        Run.create!(
+          task_name: "Maintenance::TestTask",
+          created_at: i.minutes.ago,
+          started_at: i.minutes.ago,
+          tick_count: 10,
+          tick_total: 10,
+          status: :succeeded,
+          ended_at: i.minutes.ago,
+        )
+      end
+
+      visit(maintenance_tasks.task_path("Maintenance::TestTask", per_page: 4, refresh: false))
+      find("summary", text: "Display").click
+      within("[data-preference-control=appearance]") do
+        click_button("Modern")
+      end
+
+      assert_equal("4", find("select[aria-label='Runs per page']").value)
+      assert_selector(".run-card", count: 4)
+
+      click_on("Next")
+      query = Rack::Utils.parse_query(URI.parse(page.current_url).query)
+      assert_equal("4", query["per_page"])
+      assert_equal("false", query["refresh"])
+      assert(query["cursor"].present?)
+
+      find("select[aria-label='Runs per page']").select("10")
+      query = Rack::Utils.parse_query(URI.parse(page.current_url).query)
+      assert_equal({ "per_page" => "10", "refresh" => "false" }, query)
+      assert_selector(".run-card", count: 10)
+    ensure
+      page.execute_script("window.localStorage.clear()")
     end
 
     test "show a deleted Task" do

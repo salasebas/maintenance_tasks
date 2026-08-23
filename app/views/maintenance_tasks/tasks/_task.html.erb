@@ -1,6 +1,10 @@
-<div class="cell box">
-  <h3 class="title is-5 has-text-weight-medium is-flex is-align-items-center">
-    <%= link_to task, task_path(task) %>
+<div
+  class="cell box task-card"
+  data-task-status="<%= task.status %>"
+  data-page-visible="<%= tasks_page.nil? || tasks_page.include?(task) %>"
+>
+  <h3 class="title is-5 has-text-weight-medium is-flex is-align-items-center task-card__heading">
+    <%= link_to task, task_path(task), class: "task-card__link" %>
     <%= status_tag(task.status) %>
   </h3>
 
@@ -17,7 +21,7 @@
       </div>
     <% end %>
 
-    <h5 class="title is-5 has-text-weight-medium">
+    <h5 class="title is-5 has-text-weight-medium task-card__timestamp">
       <%= time_tag run.created_at, title: run.created_at.utc %>
     </h5>
 
