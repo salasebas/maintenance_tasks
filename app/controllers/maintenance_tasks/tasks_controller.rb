@@ -13,6 +13,12 @@ module MaintenanceTasks
     # available tasks to users, grouped by category.
     def index
       @available_tasks = TaskDataIndex.available_tasks.group_by(&:category)
+      @selected_category = params[:tab].presence_in(["new", "active", "completed"]) || "new"
+      @tasks_page = TasksPage.new(
+        @available_tasks.fetch(@selected_category.to_sym, []),
+        cursor: params[:cursor],
+        per_page: params[:per_page],
+      )
     end
 
     # Renders the page responsible for providing Task actions to users.
@@ -21,7 +27,8 @@ module MaintenanceTasks
       @task = TaskDataShow.prepare(
         params.fetch(:id),
         runs_cursor: params[:cursor],
-        arguments: params.except(:id, :controller, :action, :refresh).permit!,
+        runs_per_page: params[:per_page],
+        arguments: params.except(:id, :controller, :action, :refresh, :cursor, :per_page).permit!,
       )
     end
 

@@ -29,6 +29,22 @@ module MaintenanceTasks
       assert_equal @runs.last(20), runs_page.records
     end
 
+    test "#records accepts an arbitrary positive page size" do
+      runs_page = RunsPage.new(@runs, nil, per_page: 4)
+
+      assert_equal 4, runs_page.per_page
+      assert_equal @runs.first(4), runs_page.records
+    end
+
+    test "#records uses the default page size for invalid values" do
+      [nil, 0, -1, "invalid"].each do |per_page|
+        runs_page = RunsPage.new(@runs, nil, per_page: per_page)
+
+        assert_equal RunsPage::RUNS_PER_PAGE, runs_page.per_page
+        assert_equal @runs.first(RunsPage::RUNS_PER_PAGE), runs_page.records
+      end
+    end
+
     test "#next_cursor returns the id of the last run in the record set" do
       last_id = @runs.last.id
       runs_page = RunsPage.new(@runs, @runs.first.id)
@@ -74,6 +90,16 @@ module MaintenanceTasks
       third_page = RunsPage.new(runs, second_page.next_cursor)
 
       assert_equal first_page.next_cursor, third_page.previous_cursor
+    end
+
+    test "#previous_cursor uses the configured page size" do
+      first_page = RunsPage.new(@runs, nil, per_page: 4)
+      second_page = RunsPage.new(@runs, first_page.next_cursor, per_page: 4)
+      third_page = RunsPage.new(@runs, second_page.next_cursor, per_page: 4)
+
+      assert_nil second_page.previous_cursor
+      assert_equal first_page.next_cursor, third_page.previous_cursor
+      assert_equal 4, third_page.records.length
     end
 
     test "#records does not duplicate or omit runs when ids and timestamps have different orders" do

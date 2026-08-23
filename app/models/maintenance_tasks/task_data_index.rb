@@ -48,7 +48,12 @@ module MaintenanceTasks
         # stable across database adapters when a Task has multiple active
         # Runs created at the same time.
         tasks.sort_by! do |task|
-          [-(task.related_run&.created_at&.to_f || 0), task.name, task.status]
+          [
+            -(task.related_run&.created_at&.to_f || 0),
+            task.name,
+            task.status,
+            task.related_run&.id.to_s,
+          ]
         end
       end
     end

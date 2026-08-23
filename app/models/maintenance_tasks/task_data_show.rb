@@ -15,11 +15,12 @@ module MaintenanceTasks
     #
     # @param name [String] the name of the Task subclass.
     # @param runs_cursor [String, nil] the cursor for the runs page.
+    # @param runs_per_page [String, Integer, nil] the number of Runs per page.
     # @param arguments [Hash, nil] the Task arguments.
-    def initialize(name, runs_cursor: nil, arguments: nil)
+    def initialize(name, runs_cursor: nil, runs_per_page: nil, arguments: nil)
       @name = name
       @arguments = arguments
-      @runs_page = RunsPage.new(completed_runs, runs_cursor)
+      @runs_page = RunsPage.new(completed_runs, runs_cursor, per_page: runs_per_page)
     end
 
     class << self
@@ -27,10 +28,11 @@ module MaintenanceTasks
       #
       # @param name [String] the name of the Task subclass.
       # @param runs_cursor [String, nil] the cursor for the runs page.
+      # @param runs_per_page [String, Integer, nil] the number of Runs per page.
       # @param arguments [Hash, nil] the Task arguments.
       # @raise [Task::NotFoundError] if the Task doesn't have runs (for the given cursor) and doesn't exist.
-      def prepare(name, runs_cursor: nil, arguments: nil)
-        new(name, runs_cursor:, arguments:)
+      def prepare(name, runs_cursor: nil, runs_per_page: nil, arguments: nil)
+        new(name, runs_cursor:, runs_per_page:, arguments:)
           .load_active_runs
           .ensure_task_exists
       end

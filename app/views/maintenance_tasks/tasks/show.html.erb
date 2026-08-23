@@ -1,15 +1,26 @@
 <% content_for :page_title, @task %>
 
-<h1 class="title is-3 has-text-weight-bold">
-  <%= @task %>
-</h1>
+<article class="task-show">
+  <header class="task-show__header">
+    <h1 class="title is-3 has-text-weight-bold task-show__title"><%= @task %></h1>
+  </header>
 
-<div class="container">
-  <%= form_with url: task_runs_path(@task), method: :post do |form| %>
+<div class="container task-run-form-shell">
+  <%= form_with url: task_runs_path(@task), method: :post, class: "task-run-form" do |form| %>
     <% if @task.csv_task? %>
-      <div class="container mb-4">
-        <%= form.label :csv_file, class: "label" %>
-        <%= form.file_field :csv_file, accept: "text/csv" %>
+      <div class="container mb-4 task-run-form__field">
+        <%= form.label :csv_file, class: "label task-run-form__label" %>
+        <div class="task-file-upload" data-file-upload>
+          <%= form.file_field :csv_file,
+            accept: "text/csv",
+            class: "task-file-upload__input",
+            data: { file_upload_input: true } %>
+          <%= form.label :csv_file, class: "task-file-upload__dropzone" do %>
+            <span class="task-file-upload__action">Choose CSV</span>
+            <span class="task-file-upload__hint">or drop it here</span>
+            <span class="task-file-upload__name" data-file-upload-name>No file selected</span>
+          <% end %>
+        </div>
       </div>
     <% end %>
     <% parameter_names = @task.parameter_names %>
@@ -26,15 +37,15 @@
       </div>
     <% end %>
     <%= render "maintenance_tasks/tasks/custom", form: form %>
-    <div class="block">
-      <%= form.submit 'Run', class: "button is-success is-rounded mb-4 has-text-white-ter", disabled: @task.deleted? %>
+    <div class="block task-run-form__actions">
+      <%= form.submit 'Run', class: "button is-success is-rounded mb-4 has-text-white-ter task-run-form__submit", disabled: @task.deleted? %>
     </div>
   <% end %>
 </div>
 
 <% if (code = @task.code) %>
 
-<details class="box">
+<details class="box task-source">
   <summary class="is-size-5 is-flex is-align-items-center">
     <h5 class="pl-5">Source code</h5>
   </summary>
@@ -42,13 +53,17 @@
 </details>
 <% end %>
 
-<%= tag.div(data: { refresh: (@task.refresh? && @auto_refresh_enabled) || "" }) do %>
+<%= tag.div(class: "task-runs", data: { refresh: (@task.refresh? && @auto_refresh_enabled) || "" }) do %>
   <% if @task.refresh? %>
-    <div class="is-flex is-justify-content-flex-end mb-2">
+    <div class="is-flex is-justify-content-flex-end mb-2 task-runs__refresh-control">
       <% if @auto_refresh_enabled %>
-        <%= link_to "Disable auto-refresh", task_path(@task, refresh: false), class: "button is-small is-light" %>
+        <%= link_to "Disable auto-refresh",
+          task_path(@task, cursor: @task.runs_page.cursor, per_page: params[:per_page], refresh: false),
+          class: "button is-small is-light" %>
       <% else %>
-        <%= link_to "Enable auto-refresh", task_path(@task), class: "button is-small is-light" %>
+        <%= link_to "Enable auto-refresh",
+          task_path(@task, cursor: @task.runs_page.cursor, per_page: params[:per_page]),
+          class: "button is-small is-light" %>
       <% end %>
     </div>
   <% end %>
@@ -56,7 +71,7 @@
   <% if @task.active_runs.any? %>
     <hr>
 
-    <h4 class="title is-4">Active Runs</h4>
+    <h4 class="title is-4 task-runs__heading">Active Runs</h4>
 
     <%= render partial: "maintenance_tasks/runs/run", collection: @task.active_runs %>
   <% end %>
@@ -64,13 +79,70 @@
   <% if @task.runs_page.records.present? %>
     <hr>
 
-    <h4 class="title is-5 has-text-weight-bold">Previous Runs</h4>
+    <h4 class="title is-5 has-text-weight-bold task-runs__heading">Previous Runs</h4>
 
     <%= render partial: "maintenance_tasks/runs/run", collection: @task.runs_page.records %>
 
-    <nav class="is-flex is-justify-content-space-between" aria-label="pagination">
-      <span><%= link_to "Previous page", task_path(@task, cursor: @task.runs_page.previous_cursor) unless @task.runs_page.first? %></span>
-      <span><%= link_to "Next page", task_path(@task, cursor: @task.runs_page.next_cursor) unless @task.runs_page.last? %></span>
+    <nav class="is-flex is-justify-content-space-between run-pagination-classic" aria-label="Previous runs pagination">
+      <span>
+        <%= link_to "Previous page",
+          task_path(@task, cursor: @task.runs_page.previous_cursor, per_page: @task.runs_page.per_page, refresh: params[:refresh]) unless @task.runs_page.first? %>
+      </span>
+      <span>
+        <%= link_to "Next page",
+          task_path(@task, cursor: @task.runs_page.next_cursor, per_page: @task.runs_page.per_page, refresh: params[:refresh]) unless @task.runs_page.last? %>
+      </span>
     </nav>
+
+    <footer class="task-pagination run-pagination">
+      <p class="task-pagination__summary" aria-live="polite">
+        Showing <span><%= @task.runs_page.records.length %></span> runs
+      </p>
+
+      <div class="task-pagination__controls">
+        <%= form_with url: task_path(@task), method: :get, local: true, class: "task-pagination__size-form" do |form| %>
+          <%= form.hidden_field :refresh, value: params[:refresh] if params.key?(:refresh) %>
+          <span class="task-pagination__select-shell">
+            <% page_size_options = (MaintenanceTasks::RunsPage::PER_PAGE_OPTIONS + [@task.runs_page.per_page]).uniq.sort %>
+            <%= form.select :per_page,
+              options_for_select(page_size_options, @task.runs_page.per_page),
+              {},
+              class: "task-pagination__select",
+              data: { per_page_select: true },
+              aria: { label: "Runs per page" } %>
+          </span>
+        <% end %>
+
+        <% unless @task.runs_page.first? && @task.runs_page.last? %>
+          <nav class="task-pagination__navigation" aria-label="Run pagination">
+            <% previous_path = task_path(
+              @task,
+              cursor: @task.runs_page.previous_cursor,
+              per_page: @task.runs_page.per_page,
+              refresh: params[:refresh],
+            ) %>
+            <% next_path = task_path(
+              @task,
+              cursor: @task.runs_page.next_cursor,
+              per_page: @task.runs_page.per_page,
+              refresh: params[:refresh],
+            ) %>
+
+            <% if @task.runs_page.first? %>
+              <span class="task-pagination__button" aria-disabled="true">Previous</span>
+            <% else %>
+              <%= link_to "Previous", previous_path, class: "task-pagination__button" %>
+            <% end %>
+
+            <% if @task.runs_page.last? %>
+              <span class="task-pagination__button" aria-disabled="true">Next</span>
+            <% else %>
+              <%= link_to "Next", next_path, class: "task-pagination__button" %>
+            <% end %>
+          </nav>
+        <% end %>
+      </div>
+    </footer>
   <% end %>
 <% end %>
+</article>
