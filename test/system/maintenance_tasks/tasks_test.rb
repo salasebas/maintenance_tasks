@@ -84,9 +84,9 @@ module MaintenanceTasks
       assert_no_link "Enable auto-refresh"
     end
 
-    test "navigates task categories with refreshed tabs" do
+    test "navigates task categories with modern tabs" do
       visit maintenance_tasks_path
-      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'refreshed')")
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
       visit maintenance_tasks_path
 
       assert_selector ".task-tabs__trigger.is-active[aria-current=page]", text: "New Tasks"
@@ -108,7 +108,7 @@ module MaintenanceTasks
     test "shows an empty state for a selected task category" do
       Run.active.delete_all
       visit maintenance_tasks_path
-      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'refreshed')")
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
       visit maintenance_tasks_path(tab: "active")
 
       assert_selector ".task-tabs__trigger.is-active[aria-current=page]", text: "Active Tasks"
@@ -116,14 +116,14 @@ module MaintenanceTasks
       assert_no_selector ".task-group--active .task-card", visible: true
     end
 
-    test "paginates refreshed task categories and keeps the page size in the URL" do
+    test "paginates modern task categories and keeps the page size in the URL" do
       tasks = 51.times.map do |index|
         TaskDataIndex.new(format("Maintenance::GeneratedTask%02d", index))
       end
       TaskDataIndex.stubs(:available_tasks).returns(tasks)
 
       visit maintenance_tasks_path(refresh: false)
-      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'refreshed')")
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
       visit maintenance_tasks_path(tab: "new", refresh: false)
 
       assert_selector ".task-pagination", visible: true
@@ -173,7 +173,7 @@ module MaintenanceTasks
       TaskDataIndex.stubs(:available_tasks).returns(tasks)
 
       visit maintenance_tasks_path(refresh: false)
-      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'refreshed')")
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
       visit maintenance_tasks_path(tab: "new", per_page: 4, refresh: false)
 
       assert_text "1–4 of 51"
@@ -200,9 +200,9 @@ module MaintenanceTasks
       assert_equal 51, page.all(".task-card", visible: true).length
     end
 
-    test "opens a Task by clicking anywhere on its refreshed row" do
+    test "opens a Task by clicking anywhere on its modern row" do
       visit maintenance_tasks_path
-      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'refreshed')")
+      page.execute_script("window.localStorage.setItem('maintenance_tasks.appearance', 'modern')")
       visit maintenance_tasks_path
 
       find(".task-card", text: "Maintenance::BatchImportPostsTask").click
@@ -220,22 +220,22 @@ module MaintenanceTasks
 
       find("summary", text: "Display").click
       within "[data-preference-control=appearance]" do
-        click_button "Refreshed"
-        assert_selector "button[data-preference-value=refreshed][aria-pressed=true]"
+        click_button "Modern"
+        assert_selector "button[data-preference-value=modern][aria-pressed=true]"
       end
       within "[data-preference-control=theme]" do
         click_button "Dark"
         assert_selector "button[data-preference-value=dark][aria-pressed=true]"
       end
 
-      assert_selector "html[data-appearance=refreshed][data-theme=dark]"
-      assert_equal "refreshed", page.evaluate_script("window.localStorage.getItem('maintenance_tasks.appearance')")
+      assert_selector "html[data-appearance=modern][data-theme=dark]"
+      assert_equal "modern", page.evaluate_script("window.localStorage.getItem('maintenance_tasks.appearance')")
       assert_equal "dark", page.evaluate_script("window.localStorage.getItem('maintenance_tasks.theme')")
 
       visit maintenance_tasks_path
 
-      assert_selector "html[data-appearance=refreshed][data-theme=dark]"
-      assert_equal "Refreshed · Dark", find("[data-display-preference-summary]").text
+      assert_selector "html[data-appearance=modern][data-theme=dark]"
+      assert_equal "Modern · Dark", find("[data-display-preference-summary]").text
 
       find("summary", text: "Display").click
       within "[data-preference-control=theme]" do
@@ -526,7 +526,7 @@ module MaintenanceTasks
       visit(maintenance_tasks.task_path("Maintenance::TestTask", per_page: 4, refresh: false))
       find("summary", text: "Display").click
       within("[data-preference-control=appearance]") do
-        click_button("Refreshed")
+        click_button("Modern")
       end
 
       assert_equal("4", find("select[aria-label='Runs per page']").value)
