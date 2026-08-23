@@ -30,6 +30,15 @@ module MaintenanceTasks
       end
     end
 
+    # Rails 7.2/8.0 retry a dup, so enqueue self for successfully_enqueued?.
+    def retry_job(options = {})
+      return if defined?(@retried) && @retried
+
+      result = enqueue(options)
+      @retried = true
+      result
+    end
+
     private
 
     def serialized_cursor_position
@@ -188,8 +197,15 @@ module MaintenanceTasks
 
     def after_perform
       @run.persist_transition
-      if defined?(@reenqueue_iteration_job) && @reenqueue_iteration_job
-        reenqueue_iteration_job(should_ignore: false) unless @run.stopped?
+      if defined?(@reenqueue_iteration_job) && @reenqueue_iteration_job && !@run.stopped?
+        reenqueue_iteration_job(should_ignore: false)
+        unless successfully_enqueued?
+          error = enqueue_error || ActiveJob::EnqueueError.new(
+            "The job to perform #{@run.task_name} could not be re-enqueued. " \
+              "Enqueuing has been prevented by a callback.",
+          )
+          raise error
+        end
       end
     end
 
