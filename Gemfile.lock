@@ -324,6 +324,7 @@ DEPENDENCIES
   capybara-lockstep
   debug
   herb
+  json (< 3)
   maintenance_tasks!
   minitest
   mocha
