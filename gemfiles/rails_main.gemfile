@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
 @rails_gem_requirement = { github: "rails/rails" }
+@json_gem_requirement = ">= 0"
 
 eval_gemfile "../Gemfile"
